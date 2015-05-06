@@ -2,7 +2,7 @@
 	
 - Base Engine offers a Java framework that provides easy to use techniques for fast and intuitive Android application development.
 	
-- Variable OpenGL ES 2.0 bindings
+- Variable OpenGL ES 2.0/3.x bindings
 - System and Video buffers, VBO
 - 3D and 2D Meshes
 - Skeletal Animations, precalculated or real-time
