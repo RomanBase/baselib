@@ -1,9 +1,9 @@
-<h1>Base Features</h1>
+# Base Features
 	
 - Base Engine offers a Java framework that provides easy to use techniques for fast and intuitive Android application development.
 	
 - Variable OpenGL ES 2.0/3.x bindings
-- System and Video buffers, VBO
+- System and Video buffers, VBO/IBO
 - 3D and 2D Meshes
 - Skeletal Animations, precalculated or real-time
 - Textures
@@ -17,6 +17,5 @@
 - Texture Atlases generating
 - File I/O at different Storages
 - Box2D integration
-
 - Blender Export Script for Meshes and Skeletal Animations
 - Blender Export Script for Curves and Empties like sensors
