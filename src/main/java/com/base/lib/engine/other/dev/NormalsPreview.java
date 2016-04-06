@@ -3,13 +3,12 @@ package com.base.lib.engine.other.dev;
 import android.opengl.GLES20;
 
 import com.base.lib.R;
-import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseRender;
 import com.base.lib.engine.BaseRenderable;
 import com.base.lib.engine.BaseShader;
 import com.base.lib.engine.common.BaseMatrix;
 import com.base.lib.engine.common.Buffers;
-import com.base.lib.engine.glcommon.BaseGLBuffer;
+import com.base.lib.engine.common.gl.BaseGLBuffer;
 
 import java.nio.FloatBuffer;
 
@@ -25,8 +24,8 @@ public class NormalsPreview extends BaseRenderable {
 
     public NormalsPreview(float[] vertices, float[] normals, short[] faces, float[] matrix, float w) {
 
-        shader = new BaseShader("normal_sh", "u_MVPMatrix", "a_Position", "u_Color")
-                .loadShadersFromResources(R.raw.one_color_vertex, R.raw.color_fragment_shader);
+        shader = new BaseShader(base.gl, "normal_sh", "u_MVPMatrix", "a_Position", "u_Color")
+                .loadShadersFromResources(R.raw.one_color_vert, R.raw.color_frag);
 
         if (faces == null) {
             faces = new short[vertices.length / 3];
@@ -44,8 +43,8 @@ public class NormalsPreview extends BaseRenderable {
 
     public NormalsPreview(float[] vertices, float[] normals, float[] matrix, float w) {
 
-        shader = new BaseShader("normal_sh", "u_MVPMatrix", "a_Position", "u_Color")
-                .loadShadersFromResources(R.raw.one_color_vertex, R.raw.color_fragment_shader);
+        shader = new BaseShader(base.gl, "normal_sh", "u_MVPMatrix", "a_Position", "u_Color")
+                .loadShadersFromResources(R.raw.one_color_vert, R.raw.color_frag);
 
         count = normals.length / 3;
         lineVerts = new float[count * 3 * 2];
@@ -95,7 +94,7 @@ public class NormalsPreview extends BaseRenderable {
 
         GLES20.glUniform4f(shader.handle[2], 0.0f, 1.0f, 1.0f, 1.0f);
         BaseGLBuffer.glPutArray(linesBuffer, shader.handle[1], 3);
-        BaseMatrix.multiplyMC(modelMatrix, Base.camera);
+        BaseMatrix.multiplyMC(modelMatrix, base.camera);
         BaseMatrix.glPutMatrix(modelMatrix, shader.handle[0]);
         BaseGLBuffer.glDrawArrays(GLES20.GL_LINES, count);
         BaseGLBuffer.glDisableAttribArray(shader.handle[1]);
@@ -115,6 +114,6 @@ public class NormalsPreview extends BaseRenderable {
     public void use() {
 
         inUse = true;
-        ((BaseRender) Base.render).addPostDrawable(this);
+        ((BaseRender) base.render).addPostDrawable(this);
     }
 }

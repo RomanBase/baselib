@@ -6,118 +6,91 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.os.Vibrator;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.WindowManager;
-import android.widget.Toast;
 
-import com.base.lib.engine.other.dev.FpsBar;
+import com.base.lib.BuildConfig;
+import com.base.lib.engine.builders.BaseFactory;
 
 import java.util.Random;
 
 /**
  * Base class is initialized by BaseActivity
  * <p>
- * This class holds important inforamtions about running deviace and application
+ * This class holds important inforamtions about running device and application
  * </p>
  */
-public final class Base {
+public final class Base { //TODO just one render
 
     public static String TAG = "Base";
+    public static boolean debug = BuildConfig.DEBUG;
 
-    public static Context context;
-    public static BaseActivity activity;
+    public static Context appContext;
 
-    public static BaseGLView glView;
-    public static BaseRenderer render;
-    public static BaseCamera camera;
+    public final Context context;
+    public final BaseActivity activity;
 
-    public static final Random random = new Random(SystemClock.uptimeMillis());
+    public final Screen screen;
+    public final Random random;
+    public final BaseTime time;
 
-    public static float screenWidth;
-    public static float screenHeight;
-    public static float screenRatio;
-    public static float screenDensity;
+    public BaseRenderer render;
+    public BaseCamera camera;
+    public BaseGL gl;
+    public BaseFactory factory;
 
-    public static boolean debug = false;
+    public Base(BaseActivity activity, Context context) {
 
-    /**
-     * called with BaseActivity onCreate function
-     * <p/>
-     * gather base informations about current app and deviace and hold it by static way
-     */
-    static void init(final BaseActivity baseActivity) {
+        this.activity = activity;
+        this.context = context;
 
-        activity = baseActivity;
-        init(activity.getBaseContext());
+        this.random = new Random(SystemClock.uptimeMillis());
+        this.screen = new Screen(this);
+        this.screen.initDeviceDimensions(true);
+        this.time = new BaseTime();
     }
 
-    public static void init(final Context appContext) {
-
-        context = appContext;
-        BaseTime.resetAppTime();
+    public void init(BaseCamera camera, BaseRenderer render) {
+        this.camera = camera;
+        this.render = render;
     }
 
-    public static void init(final BaseActivity baseActivity, BaseRenderer renderer) {
-
-        activity = baseActivity;
-        context = baseActivity.getBaseContext();
-
-        render = renderer;
-        glView = renderer.getView();
+    public void initGL(BaseGL gl) {
+        this.gl = gl;
     }
 
-    protected static void recalcScreenDimensionsDecorated() {
-
-        recalcScreenDimensions(true);
-        rebindCam();
+    public void initFactory(BaseFactory factory) {
+        this.factory = factory;
     }
 
-    protected static void recalcScreenDimensions() {
+    @SuppressWarnings("unchecked")
+    public <T extends BaseRenderer> T getRender() {
 
-        recalcScreenDimensions(false);
-        rebindCam();
+        return (T) render;
     }
 
-    static void rebindCam() {
+    public void onConfigrationChanged() {
 
-        if (camera == null || !camera.equalsToScreenDimension()) {
-            camera = BaseCamera.perspective(landscape() ? 45.0f : 30.0f, 10.0f, 1.0f, 1.1f);
-        }
+        screen.initDeviceDimensions(true);
     }
 
-    public static boolean landscape() {
-
-        return screenWidth > screenHeight;
-    }
-
-    public static boolean isScreenOn() {
+    public boolean isScreenOn() {
 
         return ((PowerManager) context.getSystemService(Context.POWER_SERVICE)).isScreenOn();
     }
 
-    public static boolean isFinishing() {
+    public boolean isFinishing() {
 
         return activity.isFinishing();
-    }
-
-    public static FpsBar showFpsBar() {
-
-        return new FpsBar();
     }
 
     public static long getMaxMemoryHeap() {
 
         return Runtime.getRuntime().maxMemory();
-    }
-
-    public static float getScreenDpi() {
-
-        return screenDensity * 2.0f;
     }
 
     public static boolean hasSoftKeys() {
@@ -130,8 +103,9 @@ public final class Base {
 
     public static void log(Object... o) {
 
-        if (!debug)
+        if (!debug) {
             return;
+        }
 
         StringBuilder builder = new StringBuilder(o.length * 2 + 1);
         for (Object ob : o) {
@@ -180,68 +154,10 @@ public final class Base {
         if (debug) Log.v(TAG, o.toString());
     }
 
-    public static void toast(final Object o) {
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(context, o.toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    public static void toastLong(final Object o) {
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(context, o.toString(), Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    public static void vibre(int millis) {
-
-        ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(millis);
-    }
-
-    /**
-     * calculate app screen width, height, density and screen ratio
-     *
-     * @param includeDecorations include status bar and menu etc.
-     */
-    public static void recalcScreenDimensions(boolean includeDecorations) {
-
-        final WindowManager wm = (WindowManager) Base.context.getSystemService(Context.WINDOW_SERVICE);
-        final Display dis = wm.getDefaultDisplay();
-        final DisplayMetrics displayMetrics = new DisplayMetrics();
-        dis.getMetrics(displayMetrics);
-
-        if (includeDecorations) {
-            try {
-                Point realSize = new Point();
-                Display.class.getMethod("getRealSize", Point.class).invoke(dis, realSize);
-                Base.screenWidth = realSize.x;
-                Base.screenHeight = realSize.y;
-            } catch (Exception ex) {
-                Base.logE("Monkeys can't measure real display size.");
-                recalcScreenDimensions(false);
-            }
-        } else {
-            Point size = new Point();
-            dis.getSize(size);
-            Base.screenWidth = size.x;
-            Base.screenHeight = size.y;
-        }
-
-        Base.screenDensity = displayMetrics.density;
-        Base.screenRatio = Base.screenWidth / Base.screenHeight;
-    }
-
     /**
      * @return screen dimensions - [0]screenWidth, [1]screenHeight
      */
-    public static float[] getScreenDimensions(boolean includeDecorations) {
+    public float[] getScreenDimensions(boolean includeDecorations) {
 
         float[] dim = new float[2];
         final WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -257,7 +173,7 @@ public final class Base {
                 dim[1] = realSize.y;
             } catch (Exception ex) {
                 Base.logE("Monkeys can't measure real display size.");
-                recalcScreenDimensions(false);
+                return getScreenDimensions(false);
             }
         } else {
             Point size = new Point();
@@ -269,7 +185,7 @@ public final class Base {
         return dim;
     }
 
-    public static boolean isDeviceDecorated() {
+    public boolean isDeviceDecorated() {
 
         float[] deco = getScreenDimensions(true);
         float[] undeco = getScreenDimensions(false);
@@ -277,16 +193,19 @@ public final class Base {
         return !(deco[0] == undeco[0] && deco[1] == undeco[1]);
     }
 
-    public static boolean isConnected() {
+    public boolean isConnected() {
 
-        ConnectivityManager conMgr = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager conMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = conMgr.getActiveNetworkInfo();
 
-        return netInfo != null && netInfo.isConnected();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    public static boolean hasContext() {
+    public boolean isWifiConnected() {
 
-        return activity != null && context != null;
+        ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+        return mWifi.isConnectedOrConnecting();
     }
 }

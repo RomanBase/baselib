@@ -2,8 +2,8 @@ package com.base.lib.googleservices;
 
 import android.view.View;
 
-import com.base.lib.engine.Base;
-import com.base.lib.engine.common.FileHelper;
+import com.base.lib.engine.BaseActivity;
+import com.base.lib.engine.common.file.FileHelper;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.achievement.AchievementBuffer;
@@ -69,10 +69,10 @@ public class BaseAchievements { //todo connection double checked in a lot of cas
         setProgress(FileHelper.resourceString(resourceID), progress);
     }
 
-    public static void showDefaultAchievementsActivity() {
+    public static void showDefaultAchievementsActivity(BaseActivity activity) {
 
         if (BaseApiClient.isConnected()) {
-            Base.activity.startActivityForResult(Games.Achievements.getAchievementsIntent(BaseApiClient.getClient()), BaseApiClient.REQUEST_ACHIEVEMENTS);
+            activity.startActivityForResult(Games.Achievements.getAchievementsIntent(BaseApiClient.getClient()), BaseApiClient.REQUEST_ACHIEVEMENTS);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.base.lib.box.base;
 
-import com.base.lib.engine.common.TrainedMonkey;
+import com.base.lib.engine.common.other.TrainedMonkey;
 
 /**
  *

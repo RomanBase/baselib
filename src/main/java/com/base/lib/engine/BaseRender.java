@@ -1,7 +1,6 @@
 package com.base.lib.engine;
 
-import android.opengl.GLSurfaceView;
-
+import com.base.lib.engine.builders.RenderConfig;
 import com.base.lib.engine.controls.BaseUILayer;
 
 /**
@@ -16,36 +15,16 @@ public class BaseRender extends BaseRenderer {
     protected BaseUILayer uiLayer;
 
     /**
-     * creates GLSurfaceView and sets this Renderer. elgConfigChooser and elgContextFactory is null (System specified)
-     */
-    public BaseRender(BaseOptions cfg) {
-        this(cfg, null, null);
-    }
-
-    /**
      * creates GLSurfaceView and sets this Renderer.
-     *
-     * @param eglConfigChooser  can be null.
-     * @param eglContextFactory can be null.
      */
-    public BaseRender(BaseOptions cfg, GLSurfaceView.EGLConfigChooser eglConfigChooser, GLSurfaceView.EGLContextFactory eglContextFactory) {
-        super();
+    public BaseRender(RenderConfig config) {
+        super(config);
 
-        if (cfg != null) {
-            cfg.bind();
-        } else {
-            cfg = new BaseOptions();
-        }
+        setGLView(new BaseGLView(config));
 
-        new BaseGLView(this, eglConfigChooser, eglContextFactory);
-
-        preUpdatables = new BaseUpdateableCollection(64);
-        preRenderables = new BaseRootCollection(64);
-        postRenderables = new BaseRootCollection(64);
-
-        float rfps = cfg.getRfps();
-        setRequestedFPS(rfps);
-        if (rfps > 0.0f) useFPSRendering();
+        preUpdatables = new BaseUpdateableCollection(base, 64);
+        preRenderables = new BaseRootCollection(base, 64);
+        postRenderables = new BaseRootCollection(base, 64);
     }
 
     /**
@@ -64,6 +43,7 @@ public class BaseRender extends BaseRenderer {
      */
     public void destroyUiLayer() {
 
+        setTouchListener(null);
         if (uiLayer != null) {
             uiLayer.destroy();
             uiLayer = null;
@@ -86,11 +66,11 @@ public class BaseRender extends BaseRenderer {
     @Override
     protected void onUpdate() {
 
-        if(preUpdatables.size > 0){
+        if (preUpdatables.size > 0) {
             preUpdatables.update();
         }
 
-        Base.camera.update();
+        base.camera.update();
         if (uiLayer != null) {
             uiLayer.update();
         }
@@ -99,7 +79,7 @@ public class BaseRender extends BaseRenderer {
     @Override
     protected void onPreDraw() {
 
-        if(preRenderables.size > 0){
+        if (preRenderables.size > 0) {
             preRenderables.updateToDraw();
         }
     }
@@ -108,11 +88,11 @@ public class BaseRender extends BaseRenderer {
     protected void onPostDraw() {
 
         if (uiLayer != null) {
-            BaseGL.useProgram(uiLayer.shader.glProgram);
+            BaseGL.useProgram(uiLayer.shader.glid);
             uiLayer.draw();
         }
 
-        if(postRenderables.size > 0){
+        if (postRenderables.size > 0) {
             postRenderables.updateToDraw();
         }
     }
@@ -129,17 +109,17 @@ public class BaseRender extends BaseRenderer {
         postRenderables.clear();
     }
 
-    public void addPreUpdateable(BaseUpdateable updateable){
+    public void addPreUpdateable(BaseUpdateable updateable) {
 
         preUpdatables.add(updateable);
     }
 
-    public void addPreDrawable(BaseRenderable renderable){
+    public void addPreDrawable(BaseRenderable renderable) {
 
         preRenderables.add(renderable);
     }
 
-    public void addPostDrawable(BaseRenderable renderable){
+    public void addPostDrawable(BaseRenderable renderable) {
 
         postRenderables.add(renderable);
     }

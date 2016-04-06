@@ -10,7 +10,7 @@ public class BaseUIItemGroup extends BaseUIItem {
 
     protected List<BaseUIItem> items;
 
-    public BaseUIItemGroup(){
+    public BaseUIItemGroup() {
 
         items = new ArrayList<BaseUIItem>(10);
     }
@@ -21,8 +21,8 @@ public class BaseUIItemGroup extends BaseUIItem {
     }
 
     @Override
-    public void onGoUp(boolean above) {
-
+    public boolean onGoUp(boolean above) {
+        return false;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class BaseUIItemGroup extends BaseUIItem {
     @Override
     public void draw() {
 
-        for(BaseUIItem item : items){
+        for (BaseUIItem item : items) {
             item.draw();
         }
     }
@@ -41,7 +41,7 @@ public class BaseUIItemGroup extends BaseUIItem {
     @Override
     public void secondaryDrawPass() {
 
-        for(BaseUIItem item : items){
+        for (BaseUIItem item : items) {
             item.secondaryDrawPass();
         }
     }
@@ -49,7 +49,7 @@ public class BaseUIItemGroup extends BaseUIItem {
     @Override
     public void update() {
 
-        for(BaseUIItem item : items){
+        for (BaseUIItem item : items) {
             item.update();
         }
     }
@@ -73,7 +73,7 @@ public class BaseUIItemGroup extends BaseUIItem {
     public void addUnder(BaseUIItem item, float spacing) {
 
         add(item);
-        BaseUIItem last = items.get(items.size()-1);
+        BaseUIItem last = items.get(items.size() - 1);
         item.updatePosition(last.getX(), last.getY() - last.gethHeight() - item.gethHeight() - spacing);
     }
 
@@ -103,25 +103,29 @@ public class BaseUIItemGroup extends BaseUIItem {
     public void onTouchDown(int id, float x, float y) {
 
         super.onTouchDown(id, x, y);
-        for(BaseUIItem item : items){
+        for (BaseUIItem item : items) {
             item.onTouchDown(id, x, y);
         }
     }
 
     @Override
-    public void onTouchUp(int id, float x, float y) {
+    public boolean onTouchUp(int id, float x, float y) {
 
         super.onTouchUp(id, x, y);
-        for(BaseUIItem item : items){
-            item.onTouchUp(id, x, y);
+        for (BaseUIItem item : items) {
+            if (item.onTouchUp(id, x, y)) {
+                return true;
+            }
         }
+
+        return false;
     }
 
     @Override
     public void onTouchMove(int id, float x, float y) {
 
         super.onTouchMove(id, x, y);
-        for(BaseUIItem item : items){
+        for (BaseUIItem item : items) {
             item.onTouchMove(id, x, y);
         }
     }

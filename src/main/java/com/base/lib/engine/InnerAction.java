@@ -1,7 +1,7 @@
 package com.base.lib.engine;
 
 import com.base.lib.engine.common.Colorf;
-import com.base.lib.engine.common.Point3;
+import com.base.lib.engine.common.other.Point3;
 
 /**
  *
@@ -187,9 +187,9 @@ public class InnerAction {
         fScale = t;
     }
 
-    public void setTime(long millis){
+    public void setTime(BaseRenderer render, long millis){
 
-        s = 1.0/(millis/Base.render.getRequestedFPS());
+        s = 1.0/(millis/render.getRequestedFPS());
     }
 
     public InnerAction next() {

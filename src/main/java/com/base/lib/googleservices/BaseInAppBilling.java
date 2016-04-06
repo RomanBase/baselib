@@ -3,6 +3,7 @@ package com.base.lib.googleservices;
 import android.content.Intent;
 
 import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseObject;
 import com.base.lib.googleservices.util.IabHelper;
 import com.base.lib.googleservices.util.IabResult;
 import com.base.lib.googleservices.util.Inventory;
@@ -12,7 +13,7 @@ import com.base.lib.interfaces.ActivityStateListener;
 /**
  * 07 Created by doctor on 31.7.13.
  */
-public class BaseInAppBilling implements ActivityStateListener { //todo switch to singleton
+public class BaseInAppBilling extends BaseObject implements ActivityStateListener { //todo switch to singleton
 
     private static final String TAG = "InAppBilling";
     public static final int REQUEST_PURCHASE = 9000;
@@ -24,22 +25,23 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
     private IabHelper mHelper;
     private boolean toConsume;
 
-    public BaseInAppBilling(final String PUBLIC_KEY, final InAppBillingHandler listener){
+    public BaseInAppBilling(Base base, final String PUBLIC_KEY, final InAppBillingHandler listener) {
+        super(base);
 
-        Base.activity.addActivityStateListener(this);
+        base.activity.addActivityStateListener(this);
 
         billingListener = listener;
-        mHelper = new IabHelper(Base.context, PUBLIC_KEY);
+        mHelper = new IabHelper(base.appContext, PUBLIC_KEY);
         mHelper.enableDebugLogging(Base.debug);
 
         startSetup(listener);
     }
 
-    void startSetup(final InAppBillingHandler listener){
+    void startSetup(final InAppBillingHandler listener) {
 
         mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
             public void onIabSetupFinished(IabResult result) {
-                if(result.isSuccess() && mHelper != null){
+                if (result.isSuccess() && mHelper != null) {
                     mHelper.queryInventoryAsync(true, listener.getSkuList(), listener);
                     Base.logV(TAG, "Setup OK");
                 } else {
@@ -49,13 +51,13 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
         });
     }
 
-    public void doPurchase(String ITEM_SKU, boolean consumable){ //todo payload
+    public void doPurchase(String ITEM_SKU, boolean consumable) { //todo payload
 
-        try{
+        try {
             sku = ITEM_SKU;
             toConsume = consumable;
-            mHelper.launchPurchaseFlow(Base.activity, ITEM_SKU, REQUEST_PURCHASE, mPurchaseFinishedListener, "base");
-        } catch (IllegalStateException ex){
+            mHelper.launchPurchaseFlow(base.activity, ITEM_SKU, REQUEST_PURCHASE, mPurchaseFinishedListener, "base");
+        } catch (IllegalStateException ex) {
             mHelper.flagEndAsync();
             errorToast();
         }
@@ -67,9 +69,9 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
 
             public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
                 if (!result.isFailure()) {
-                        mHelper.consumeAsync(inventory.getPurchase(sku), mConsumeFinishedListener);
+                    mHelper.consumeAsync(inventory.getPurchase(sku), mConsumeFinishedListener);
                 } else {
-                    Base.logE(TAG, "quering inventory failed at " +sku);
+                    Base.logE(TAG, "quering inventory failed at " + sku);
                 }
             }
         });
@@ -79,7 +81,7 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
 
         public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
             if (result.isFailure()) {
-                if(result.getResponse() == IabHelper.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED){
+                if (result.getResponse() == IabHelper.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED) {
                     billingListener.onPurchaseDone(sku, true);
                     Base.logV(TAG, "item already owned - " + sku);
                 } else {
@@ -87,9 +89,9 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
                     Base.logE(TAG, "purchase was failed at " + sku);
                 }
             } else if (purchase.getSku().equals(sku)) {
-                if(toConsume) {
+                if (toConsume) {
                     consumeItem();
-                } else if (result.isSuccess()){
+                } else if (result.isSuccess()) {
                     billingListener.onPurchaseDone(sku, true);
                 }
             }
@@ -103,19 +105,19 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
             if (result.isSuccess()) {
                 billingListener.onPurchaseDone(sku, true);
             } else {
-                Base.logE(TAG, "conusume was failed at " +sku);
+                Base.logE(TAG, "conusume was failed at " + sku);
             }
         }
     };
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         mHelper.handleActivityResult(requestCode, resultCode, data);
     }
 
-    public void errorToast(){
+    public void errorToast() { //TODO
 
-        Base.toastLong("Something went wrong. A team of highly trained monkeys has not received your purchase.");
+        //Base.toastLong("Something went wrong. A team of highly trained monkeys has not received your purchase.");
     }
 
     @Override
@@ -131,7 +133,7 @@ public class BaseInAppBilling implements ActivityStateListener { //todo switch t
     @Override
     public void destroy() {
 
-        if (mHelper != null){
+        if (mHelper != null) {
             mHelper.flagEndAsync();
             mHelper.dispose();
         }

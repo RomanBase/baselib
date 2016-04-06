@@ -8,7 +8,7 @@ import org.jbox2d.dynamics.FixtureDef;
 
 import com.base.lib.engine.DrawableBuffer;
 import com.base.lib.engine.common.DrawableData;
-import com.base.lib.engine.common.Point2;
+import com.base.lib.engine.common.other.Point2;
 
 /**
  * 15 Created by doctor on 12.8.13.

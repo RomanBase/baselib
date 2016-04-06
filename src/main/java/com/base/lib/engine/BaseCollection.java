@@ -11,7 +11,8 @@ public abstract class BaseCollection<T> extends BaseUpdateable {
     protected int index;
     protected final int capacity;
 
-    public BaseCollection(int capacity) {
+    public BaseCollection(Base base, int capacity) {
+        super(base);
 
         this.capacity = capacity;
         this.objects = new BaseRenderable[capacity];

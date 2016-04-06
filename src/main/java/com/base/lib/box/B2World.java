@@ -1,5 +1,11 @@
 package com.base.lib.box;
 
+import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseDrawable;
+import com.base.lib.engine.BaseRenderer;
+import com.base.lib.engine.BaseUpdateable;
+import com.base.lib.interfaces.ActivityStateListener;
+
 import org.jbox2d.callbacks.ContactListener;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
@@ -14,13 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import com.base.lib.engine.Base;
-import com.base.lib.engine.BaseDrawable;
-import com.base.lib.engine.BaseRenderer;
-import com.base.lib.engine.BaseTime;
-import com.base.lib.engine.BaseUpdateable;
-import com.base.lib.interfaces.ActivityStateListener;
 
 /**
  * 12 Created by doctor on 12.8.13.
@@ -37,17 +36,19 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
 
     private boolean worldUpdated;
 
-    public B2World(float gx, float gy, BaseRenderer renderer) {
-
+    public B2World(Base base, float gx, float gy, BaseRenderer renderer) {
+        super(base);
         init(new World(new Vec2(gx, gy)), renderer);
     }
 
-    /** request to call init method !! */
-    protected B2World(){
-
+    /**
+     * request to call init method !!
+     */
+    protected B2World(Base base) {
+        super(base);
     }
 
-    protected void init(World world, BaseRenderer renderer){
+    protected void init(World world, BaseRenderer renderer) {
 
         B2.b2World = world;
         B2.world = this;
@@ -55,7 +56,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         this.world = world;
         this.renderer = renderer;
 
-        B2.calcRatio();
+        B2.calcRatio(base);
 
         world.setAllowSleep(true);
         worldUpdated = true;
@@ -77,7 +78,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
 
     public void remove(Body body) {
 
-        if(worldUpdated){
+        if (worldUpdated) {
             removeBody(body);
         } else {
             synchronized (bodyQueue) {
@@ -86,11 +87,11 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         }
     }
 
-    public void removeBody(Body body){
+    public void removeBody(Body body) {
 
-        if(body != null){
+        if (body != null) {
             Fixture fixture = body.m_fixtureList;
-            if(fixture != null){
+            if (fixture != null) {
                 fixture.m_userData = null;
                 body.destroyFixture(fixture);
                 fixture = null;
@@ -101,14 +102,14 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         }
     }
 
-    public void remove(List<Body> bodies){
+    public void remove(List<Body> bodies) {
 
-        for(Body body : bodies){
+        for (Body body : bodies) {
             remove(body);
         }
     }
 
-    public void remove(Joint joint){
+    public void remove(Joint joint) {
 
         world.destroyJoint(joint);
     }
@@ -118,30 +119,30 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         return world.createJoint(jd);
     }
 
-    public Body createBody(BodyDef bd, FixtureDef fd){
+    public Body createBody(BodyDef bd, FixtureDef fd) {
 
         return world.createBody(bd).createFixture(fd).getBody();
     }
 
-    public Body createBody(BodyDef bd){
+    public Body createBody(BodyDef bd) {
 
         return world.createBody(bd);
     }
 
-    public void create(BodyDef bd, FixtureDef fd){
+    public void create(BodyDef bd, FixtureDef fd) {
 
         create(null, bd, fd);
     }
 
     public void create(B2BodyListener listener, BodyDef bd, FixtureDef fd) {
 
-        if(worldUpdated){
+        if (worldUpdated) {
             Body body = world.createBody(bd).createFixture(fd).m_body;
             BaseDrawable profile = B2Profile.body(body);
-            if(profile != null){
+            if (profile != null) {
                 profile.use();
             }
-            if(listener != null){
+            if (listener != null) {
                 listener.onCreate(body, profile);
             }
         } else {
@@ -157,12 +158,12 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         return world;
     }
 
-    public void createBodies(){
+    public void createBodies() {
 
         preUpdate();
     }
 
-    private void preUpdate(){
+    private void preUpdate() {
 
         if (!bodyQueue.isEmpty()) {
             synchronized (bodyQueue) {
@@ -200,12 +201,12 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         if (worldUpdated) {
             worldUpdated = false;
             preUpdate();
-            world.step(BaseTime.delta, velocityIter, positionIter);
+            world.step(base.time.delta, velocityIter, positionIter);
             worldUpdated = true;
         }
     }
 
-    public boolean isWorldUpdated(){
+    public boolean isWorldUpdated() {
 
         return worldUpdated;
     }
@@ -220,9 +221,9 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
 
     }
 
-    private void removeBodyIteration(Body body){
+    private void removeBodyIteration(Body body) {
 
-        if(body != null){
+        if (body != null) {
             removeFixtureIteration(body, body.getFixtureList());
             body.m_userData = null;
             Body next = body.getNext();
@@ -231,9 +232,9 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         }
     }
 
-    private void removeFixtureIteration(Body body, Fixture fixture){
+    private void removeFixtureIteration(Body body, Fixture fixture) {
 
-        if(fixture != null){
+        if (fixture != null) {
             fixture.m_userData = null;
             Fixture next = fixture.getNext();
             body.destroyFixture(fixture);
@@ -241,7 +242,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         }
     }
 
-    public void clearWorld(){
+    public void clearWorld() {
 
         removeBodyIteration(world.getBodyList());
     }
@@ -253,6 +254,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
     }
 
     private enum Action {CREATE, DESTROY}
+
     private class B2Body {
 
         protected B2BodyListener b2object;
@@ -261,7 +263,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
         protected Action act;
         protected Body body;
 
-        protected B2Body(B2BodyListener listener, BodyDef bodyDef, FixtureDef fixtureDef, Action action){
+        protected B2Body(B2BodyListener listener, BodyDef bodyDef, FixtureDef fixtureDef, Action action) {
 
             b2object = listener;
             bd = bodyDef;
@@ -269,7 +271,7 @@ public class B2World extends BaseUpdateable implements ActivityStateListener { /
             act = action;
         }
 
-        protected B2Body(Body body, Action action){
+        protected B2Body(Body body, Action action) {
             this.body = body;
             act = action;
         }

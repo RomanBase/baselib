@@ -3,8 +3,8 @@ package com.base.lib.engine;
 import android.opengl.Matrix;
 
 import com.base.lib.engine.common.BaseMatrix;
-import com.base.lib.engine.common.Point2;
-import com.base.lib.engine.common.Point3;
+import com.base.lib.engine.common.other.Point2;
+import com.base.lib.engine.common.other.Point3;
 
 import org.jbox2d.common.Vec2;
 
@@ -13,36 +13,43 @@ import org.jbox2d.common.Vec2;
  */
 public class DrawableModel extends BaseRenderable {
 
-    protected float posX;
-    protected float posY;
-    protected float posZ;
-	protected float sizeX;
-    protected float sizeY;
-    protected float sizeZ;
-    protected float rotX;
-    protected float rotY;
-    protected float rotZ;
-    protected float ratioX;
-    protected float ratioY;
-    protected float ratioZ;
+    public float posX;
+    public float posY;
+    public float posZ;
+    public float sizeX;
+    public float sizeY;
+    public float sizeZ;
+    public float rotX;
+    public float rotY;
+    public float rotZ;
+    public float ratioX;
+    public float ratioY;
+    public float ratioZ;
 
     protected float[] MVPMatrix;
     protected float[] modelMatrix;
 
-    protected Texture texture = BaseGL.baseTexture;
+    protected BaseTexture texture = BaseGL.baseTexture;
 
-    public DrawableModel(){
+    public DrawableModel() {
 
         init();
     }
 
-    public DrawableModel(BaseCamera camera) {
+    public DrawableModel(Base base){
+        super(base);
+
+        init();
+    }
+
+    public DrawableModel(Base base, BaseCamera camera) {
+        super(base);
 
         init();
         this.camera = camera;
     }
 
-    private void init(){
+    private void init() {
 
         inUse = true;
 
@@ -62,18 +69,18 @@ public class DrawableModel extends BaseRenderable {
         Matrix.multiplyMM(MVPMatrix, 0, camera.mVPMatrix, 0, modelMatrix, 0);
     }
 
-    public void updateModelStaticVP(){
+    public void updateModelStaticVP() {
 
         Matrix.multiplyMM(modelMatrix, 0, modelMatrix, 0, camera.VPMatrix[0], 0);
         Matrix.multiplyMM(MVPMatrix, 0, modelMatrix, 0, camera.VPMatrix[1], 0);
     }
 
-    public void updateModelVP(){
+    public void updateModelVP() {
 
         Matrix.multiplyMM(MVPMatrix, 0, camera.mVPMatrix, 0, modelMatrix, 0);
     }
 
-    public void updateWithModificationCalls(){
+    public void updateWithModificationCalls() {
 
         translate(posX, posY, posZ);
         scale(ratioX, ratioY, ratioZ);
@@ -81,7 +88,9 @@ public class DrawableModel extends BaseRenderable {
         Matrix.multiplyMM(MVPMatrix, 0, camera.mVPMatrix, 0, modelMatrix, 0);
     }
 
-    /** Empty */
+    /**
+     * Empty
+     */
     @Override
     public void draw() {
 
@@ -170,21 +179,27 @@ public class DrawableModel extends BaseRenderable {
         BaseMatrix.rotate(modelMatrix, angleX, angleY, angleZ);
     }
 
-    /** apply rotation on model matrix - 2D rotation around Z axis */
+    /**
+     * apply rotation on model matrix - 2D rotation around Z axis
+     */
     public void rotateZ(float angle) {
 
         rotZ = angle;
         BaseMatrix.rotateZ(modelMatrix, angle);
     }
 
-    /** apply rotation on model matrix - 2D rotation around Y axis */
+    /**
+     * apply rotation on model matrix - 2D rotation around Y axis
+     */
     public void rotateY(float angle) {
 
         rotY = angle;
         BaseMatrix.rotateY(modelMatrix, angle);
     }
 
-    /** apply rotation on model matrix - 2D rotation around X axis */
+    /**
+     * apply rotation on model matrix - 2D rotation around X axis
+     */
     public void rotateX(float angle) {
 
         rotX = angle;
@@ -194,30 +209,38 @@ public class DrawableModel extends BaseRenderable {
     /**
      * apply transformation on model matrix from InnerAction
      * note: action isn't updated here
-     * */
-    public void transform(InnerAction action){
+     */
+    public void transform(InnerAction action) {
 
         translate(action.posX, action.posY, action.posZ);
         rotate(action.rotX, action.rotY, action.rotZ);
         scale(action.scale);
     }
 
-    /** sets model matrix to identity matrix */
+    /**
+     * sets model matrix to identity matrix
+     */
     public void setIdentityMM() {
         BaseMatrix.setIdentity(modelMatrix);
     }
 
-    /** multiply model metrix by another matrix array [16] - column matrix */
+    /**
+     * multiply model metrix by another matrix array [16] - column matrix
+     */
     public void multiplyModelMatrix(float[] leftMatrix) {
         BaseMatrix.multiplyMM(modelMatrix, modelMatrix, leftMatrix);
     }
 
-    /** sets model matrix array [16] - column matrix */
+    /**
+     * sets model matrix array [16] - column matrix
+     */
     public void setModelMatrix(float[] modelMatrix) {
         this.modelMatrix = modelMatrix;
     }
 
-    /** @return float array as model matrix */
+    /**
+     * @return float array as model matrix
+     */
     public float[] getModelMatrix() {
         return modelMatrix;
     }
@@ -225,7 +248,7 @@ public class DrawableModel extends BaseRenderable {
     /**
      * apply billboarding on model matrix - all rotations are mulled
      * note: scale must be applied after this
-     * */
+     */
     public void billboard() {
         BaseMatrix.billboard(modelMatrix);
     }
@@ -233,157 +256,49 @@ public class DrawableModel extends BaseRenderable {
     /**
      * apply billboarding on model matrix - model points straight to camera
      * note: scale must be applied after this
-     * */
+     */
     public void billboardByCammera() {
         BaseMatrix.copy3(camera.VPMatrix[0], modelMatrix);
     }
 
-    /** @return absolute value of sizeX * ratioX */
+    /**
+     * @return absolute value of sizeX * ratioX
+     */
     public float getScaledSizeX() {
         return Math.abs(sizeX * ratioX);
     }
 
-    /** @return absolute value of sizeY * ratioY */
+    /**
+     * @return absolute value of sizeY * ratioY
+     */
     public float getScaledSizeY() {
         return Math.abs(sizeY * ratioY);
     }
 
-    /** @return absolute value of sizeZ * ratioZ */
+    /**
+     * @return absolute value of sizeZ * ratioZ
+     */
     public float getScaledSizeZ() {
         return Math.abs(sizeZ * ratioZ);
     }
 
-    /** @return X position*/
-    public float getPosX() {
-        return posX;
-    }
-
-    /** sets X position, note: does not affect transformation of model matrix */
-    public void setPosX(float posX) {
-        this.posX = posX;
-    }
-
-    /** @return Y position */
-    public float getPosY() {
-        return posY;
-    }
-
-    /** sets Y position, note: does not affect transformation of model matrix */
-    public void setPosY(float posY) {
-        this.posY = posY;
-    }
-
-    /** @return Z position */
-    public float getPosZ() {
-        return posZ;
-    }
-
-    /** sets Z position, note: does not affect transformation of model matrix */
-    public void setPosZ(float posZ) {
-        this.posZ = posZ;
-    }
-
-    /** @return axis X rotation */
-    public float getRotX() {
-        return rotX;
-    }
-
-    /** sets axis X rotation, note: does not affect transformation of model matrix */
-    public void setRotX(float rotX) {
-        this.rotX = rotX;
-    }
-
-    /** @return axis Y rotation */
-    public float getRotY() {
-        return rotY;
-    }
-
-    /** sets axis Y rotation, note: does not affect transformation of model matrix */
-    public void setRotY(float rotY) {
-        this.rotY = rotY;
-    }
-
-    /** @return axis Z rotation */
-    public float getRotZ() {
-        return rotZ;
-    }
-
-    /** sets axis Z rotation, note: does not affect transformation of model matrix */
-    public void setRotZ(float rotZ) {
-        this.rotZ = rotZ;
-    }
-
-    /** @return scale X */
-    public float getRatioX() {
-        return ratioX;
-    }
-
-    /** sets scale X, note: does not affect transformation of model matrix */
-    public void setRatioX(float ratioX) {
-        this.ratioX = ratioX;
-    }
-
-    /** @return scale Y*/
-    public float getRatioY() {
-        return ratioY;
-    }
-
-    /** sets scale Y, note: does not affect transformation of model matrix */
-    public void setRatioY(float ratioY) {
-        this.ratioY = ratioY;
-    }
-
-    /** @return scale Z */
-    public float getRatioZ() {
-        return ratioZ;
-    }
-
-    /** sets scale Z, note: does not affect transformation of model matrix */
-    public void setRatioZ(float ratioZ) {
-        this.ratioZ = ratioZ;
-    }
-
-    /** @return X size */
-    public float getSizeX() {
-        return sizeX;
-    }
-
-    /** sets size X, note: does not affect transformation of model matrix */
-    public void setSizeX(float sizeX) {
-        this.sizeX = sizeX;
-    }
-
-    /** @return Y size */
-    public float getSizeY() {
-        return sizeY;
-    }
-
-    /** sets size Y, note: does not affect transformation of model matrix */
-    public void setSizeY(float sizeY) {
-        this.sizeY = sizeY;
-    }
-
-    /** @return Z size */
-    public float getSizeZ() {
-        return sizeZ;
-    }
-
-    /** sets size Z, note: does not affect transformation of model matrix */
-    public void setSizeZ(float sizeZ) {
-        this.sizeZ = sizeZ;
-    }
-
-    /** @return texture reference */
-    public Texture getTexture() {
+    /**
+     * @return texture reference
+     */
+    public BaseTexture getTexture() {
         return texture;
     }
 
-    /** sets reference to texture */
-    public void setTexture(Texture texture) {
+    /**
+     * sets reference to texture
+     */
+    public void setTexture(BaseTexture texture) {
         this.texture = texture;
     }
 
-    /** @return reference to this object instance */
+    /**
+     * @return reference to this object instance
+     */
     public DrawableModel reference() {
         return this;
     }
@@ -391,14 +306,16 @@ public class DrawableModel extends BaseRenderable {
     @Override
     public String toString() {
 
-        return "\nPos: "+posX+" "+posY+" "+posZ
-                + "\nSize: "+sizeX+" "+sizeY+" "+sizeZ
-                + "\nScale: "+ratioX+" "+ratioY+" "+ ratioZ;
+        return "\nPos: " + posX + " " + posY + " " + posZ
+                + "\nSize: " + sizeX + " " + sizeY + " " + sizeZ
+                + "\nScale: " + ratioX + " " + ratioY + " " + ratioZ;
     }
 
-    /** Empty */
+    /**
+     * Empty
+     */
     @Override
-    public void destroy(){
+    public void destroy() {
 
     }
 }

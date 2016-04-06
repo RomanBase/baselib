@@ -1,6 +1,8 @@
 package com.base.lib.engine.common;
 
 import com.base.lib.engine.Type;
+import com.base.lib.engine.common.other.Point2;
+import com.base.lib.engine.common.other.Point3;
 
 /**
  * 12 Created by doctor on 4.7.13.

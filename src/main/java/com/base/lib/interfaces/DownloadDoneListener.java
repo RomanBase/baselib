@@ -5,5 +5,5 @@ package com.base.lib.interfaces;
  */
 public interface DownloadDoneListener {
 
-    public void downloadDone(int dIndex, byte[] result);
+    public void downloadDone(long dIndex, byte[] result);
 }

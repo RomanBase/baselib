@@ -14,25 +14,26 @@ public class BaseRootCollection extends BaseUpdateable {
     protected int index;
     protected final int capacity;
 
-    public BaseRootCollection(int capacity){
+    public BaseRootCollection(Base base, int capacity) {
+        super(base);
 
         this.capacity = capacity;
         this.renderables = new BaseRenderable[capacity];
     }
 
-    public void add(BaseRenderable object){
+    public void add(BaseRenderable object) {
 
         renderables[size] = object;
         size++;
     }
 
-    public void add(BaseRenderable[] objects){
+    public void add(BaseRenderable[] objects) {
 
         System.arraycopy(objects, 0, renderables, size, objects.length);
         size += objects.length;
     }
 
-    public BaseRenderable[] getAll(){
+    public BaseRenderable[] getAll() {
 
         BaseRenderable[] out = new BaseRenderable[size];
         System.arraycopy(renderables, 0, out, 0, size);
@@ -40,12 +41,12 @@ public class BaseRootCollection extends BaseUpdateable {
         return out;
     }
 
-    public List<BaseRenderable> getAllAsList(){
+    public List<BaseRenderable> getAllAsList() {
 
         return Arrays.asList(renderables);
     }
 
-    public BaseRenderable get(int index){
+    public BaseRenderable get(int index) {
 
         return renderables[index];
     }
@@ -55,44 +56,44 @@ public class BaseRootCollection extends BaseUpdateable {
         return capacity;
     }
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
 
         return size == 0;
     }
 
-    public void remove(BaseRenderable object){
+    public void remove(BaseRenderable object) {
 
-        for(int i = 0; i<size; i++){
-            if(renderables[i].equals(object)){
+        for (int i = 0; i < size; i++) {
+            if (renderables[i].equals(object)) {
                 removeFast(i);
                 break;
             }
         }
     }
 
-    protected void removeFast(int index){
+    protected void removeFast(int index) {
 
         renderables[index] = renderables[--size].reference();
         renderables[size] = null;
     }
 
-    protected void removeStandart(int index){
+    protected void removeStandart(int index) {
 
         int numMoved = size - index - 1;
         if (numMoved > 0)
-            System.arraycopy(renderables, index+1, renderables, index, numMoved);
+            System.arraycopy(renderables, index + 1, renderables, index, numMoved);
 
         renderables[--size] = null;
     }
 
     @Override
-    public void update(){
+    public void update() {
 
-        while (index < size){
+        while (index < size) {
             BaseRenderable renderable = renderables[index];
             renderable.update();
-            if(renderable.inUse) {
-                Base.render.addRenderable(renderable);
+            if (renderable.inUse) {
+                base.render.addRenderable(renderable);
                 index++;
             } else {
                 removeFast(index);
@@ -103,13 +104,13 @@ public class BaseRootCollection extends BaseUpdateable {
         index = 0;
     }
 
-    public void updateToDraw(){
+    public void updateToDraw() {
 
-        while (index < size){
+        while (index < size) {
             BaseRenderable renderable = renderables[index];
             renderable.update();
-            if(renderable.inUse) {
-                BaseGL.useProgram(renderable.shader.glProgram);
+            if (renderable.inUse) {
+                BaseGL.useProgram(renderable.shader.glid);
                 renderable.draw();
                 index++;
             } else {
@@ -121,24 +122,24 @@ public class BaseRootCollection extends BaseUpdateable {
         index = 0;
     }
 
-    public void clear(){
+    public void clear() {
 
-        for(int i = 0; i<size; i++){
+        for (int i = 0; i < size; i++) {
             renderables[i] = null;
         }
         size = 0;
     }
 
     @Override
-    public void destroy(){
+    public void destroy() {
 
         int count = size;
         size = 0;
 
-        for(int i = 0; i<count; i++){
+        for (int i = 0; i < count; i++) {
             BaseRenderable renderable = renderables[i];
-            if(renderable != null) {
-                if(renderable.inUse) {
+            if (renderable != null) {
+                if (renderable.inUse) {
                     renderable.destroy();
                 }
                 renderables[i] = null;

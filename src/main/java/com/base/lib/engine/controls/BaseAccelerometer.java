@@ -25,13 +25,13 @@ public class BaseAccelerometer implements SensorEventListener, ActivityStateList
 
     public BaseAccelerometer(){
 
-        manager = (SensorManager) Base.context.getSystemService(Context.SENSOR_SERVICE);
+        manager = (SensorManager) Base.appContext.getSystemService(Context.SENSOR_SERVICE);
         accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         registered = false;
         sensor = new float[3];
 
-        Base.activity.addActivityStateListener(this);
+        //todo Base.activity.addActivityStateListener(this);
     }
 
     public void register(){

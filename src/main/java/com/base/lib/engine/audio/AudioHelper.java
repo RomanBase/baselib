@@ -57,7 +57,7 @@ public class AudioHelper {
 
     public static float getCurrentVolume(){
 
-        AudioManager audioManager = (AudioManager) Base.context.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager audioManager = (AudioManager) Base.appContext.getSystemService(Context.AUDIO_SERVICE);
         float actualVolume = (float) audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         float maxVolume = (float) audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 

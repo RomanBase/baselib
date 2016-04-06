@@ -1,7 +1,8 @@
 package com.base.lib.engine.particles;
 
+import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseGL;
-import com.base.lib.engine.glcommon.RenderToTexture;
+import com.base.lib.engine.common.gl.RenderToTexture;
 
 /**
  *
@@ -10,15 +11,15 @@ public class BaseParticleSystemToTexture extends BaseParticleSystem {
 
     private RenderToTexture rtt;
 
-    public BaseParticleSystemToTexture(int capacity, ParticleBuffer buffer, ParticleConstructor constructor, ParticleEmiter emiter, int textureWidth, int textureHeight) {
-        super(capacity, buffer, constructor, emiter);
+    public BaseParticleSystemToTexture(Base base, int capacity, ParticleBuffer buffer, ParticleConstructor constructor, ParticleEmiter emiter, int textureWidth, int textureHeight) {
+        super(base, capacity, buffer, constructor, emiter);
 
         rtt = new RenderToTexture(textureWidth, textureHeight);
         rtt.update();
     }
 
-    public BaseParticleSystemToTexture(int capacity, ParticleBuffer buffer, ParticleConstructor constructor, ParticleEmiter emiter, RenderToTexture rtt) {
-        super(capacity, buffer, constructor, emiter);
+    public BaseParticleSystemToTexture(Base base, int capacity, ParticleBuffer buffer, ParticleConstructor constructor, ParticleEmiter emiter, RenderToTexture rtt) {
+        super(base, capacity, buffer, constructor, emiter);
 
         this.rtt = rtt;
     }
@@ -49,7 +50,7 @@ public class BaseParticleSystemToTexture extends BaseParticleSystem {
     public void destroy() {
         super.destroy();
 
-        BaseGL.glRun(new Runnable() {
+        base.gl.glRun(new Runnable() {
             @Override
             public void run() {
                 rtt.destroy();

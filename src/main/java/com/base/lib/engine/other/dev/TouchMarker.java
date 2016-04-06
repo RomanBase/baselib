@@ -5,10 +5,9 @@ import com.base.lib.R;
 import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseCamera;
 import com.base.lib.engine.BaseDrawable;
-import com.base.lib.engine.BaseShader;
 import com.base.lib.engine.DrawableBuffer;
 import com.base.lib.engine.common.BaseDrawableData;
-import com.base.lib.engine.common.BeoParser;
+import com.base.lib.engine.common.file.BeoParser;
 import com.base.lib.interfaces.BaseTouchListener;
 
 /**
@@ -20,11 +19,11 @@ public class TouchMarker implements BaseTouchListener {
     private TouchMarkDrawable[] touches;
     private BaseCamera scamera;
 
-    public TouchMarker(){
+    public TouchMarker() {
 
-        this.scamera = BaseCamera.ortho(2.0f);
+        //todo this.scamera = BaseCamera.ortho(2.0f);
         touches = new TouchMarkDrawable[255];
-        BaseDrawableData bufferData = new BeoParser(R.drawable.touchmark).getBaseDrawableData();
+        BaseDrawableData bufferData = new BeoParser(R.raw.touchmark).getBaseDrawableData();
         bufferData.setSizeX(0.225f, true);
         markBuffer = new DrawableBuffer(bufferData);
     }
@@ -32,21 +31,22 @@ public class TouchMarker implements BaseTouchListener {
     @Override
     public void onTouchDown(int id, float x, float y) {
 
-        if(Base.debug)touches[id] = new TouchMarkDrawable(x*scamera.getRatioX(), y*scamera.getRatioY());
+        if (Base.debug)
+            touches[id] = new TouchMarkDrawable(x * scamera.getRatioX(), y * scamera.getRatioY());
     }
 
     @Override
     public void onTouchUp(int id, float x, float y) {
 
-        if(touches[id] != null)touches[id].unUse();
+        if (touches[id] != null) touches[id].unUse();
     }
 
     @Override
     public void onTouchMove(int id, float x, float y) {
 
-        if(touches[id] != null){
-            touches[id].posX = x*scamera.getRatioX();
-            touches[id].posY = y*scamera.getRatioY();
+        if (touches[id] != null) {
+            touches[id].posX = x * scamera.getRatioX();
+            touches[id].posY = y * scamera.getRatioY();
         }
     }
 
@@ -55,9 +55,9 @@ public class TouchMarker implements BaseTouchListener {
         protected float posX;
         protected float posY;
 
-        private TouchMarkDrawable(float x, float y){
+        private TouchMarkDrawable(float x, float y) {
             super();
-            setShader(BaseShader.get(1));
+            // TODO: 31. 1. 2016  setShader(BaseShader.get(1));
             translate(x, y);
             posX = x;
             posY = y;
@@ -65,7 +65,7 @@ public class TouchMarker implements BaseTouchListener {
             setCamera(scamera);
             prepareDrawable();
             setIdentityMM();
-            Base.render.addDrawable(this);
+            //todo Base.render.addDrawable(this);
         }
 
         @Override

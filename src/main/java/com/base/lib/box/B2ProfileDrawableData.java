@@ -2,6 +2,12 @@ package com.base.lib.box;
 
 import android.opengl.GLES20;
 
+import com.base.lib.engine.BaseDrawable;
+import com.base.lib.engine.Type;
+import com.base.lib.engine.common.BaseDrawableData;
+import com.base.lib.engine.common.Colorf;
+import com.base.lib.engine.common.DrawableData;
+
 import org.jbox2d.collision.shapes.ChainShape;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.EdgeShape;
@@ -10,14 +16,6 @@ import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.joints.Joint;
-
-import com.base.lib.engine.Base;
-import com.base.lib.engine.BaseDrawable;
-import com.base.lib.engine.BaseShader;
-import com.base.lib.engine.common.BaseDrawableData;
-import com.base.lib.engine.common.DrawableData;
-import com.base.lib.engine.Type;
-import com.base.lib.engine.common.Colorf;
 
 /**
  * RunningWild Created by doctor on 3.9.13.
@@ -270,7 +268,7 @@ class B2JointProfile extends B2ProfileDrawable {
 
         this.joint = joint;
         vertices = new float[4];
-        Base.render.addDrawable(this);
+        base.render.addDrawable(this);
     }
 
     @Override
@@ -296,7 +294,7 @@ class B2ProfileDrawable extends BaseDrawable{
     B2ProfileDrawable(BaseDrawableData data, Colorf color){
          super(data);
 
-         shader = BaseShader.perVertexColorShader();
+        // TODO: 31. 1. 2016  shader = BaseShader.perVertexColorShader();
          buffer.setGlDrawMode(GLES20.GL_LINE_LOOP);
 
         getBuffer().setCoordsPerColor(4);

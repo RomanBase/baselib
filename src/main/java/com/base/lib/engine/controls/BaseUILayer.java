@@ -2,10 +2,13 @@ package com.base.lib.engine.controls;
 
 import android.os.SystemClock;
 
+import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseCamera;
+import com.base.lib.engine.BaseGL;
 import com.base.lib.engine.BaseRenderable;
 import com.base.lib.engine.BaseShader;
 import com.base.lib.interfaces.BaseTouchListener;
+import com.base.lib.interfaces.BaseUiTouchListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +33,9 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
 
     private boolean locked;
 
-    public BaseUILayer(BaseCamera camera, BaseUIItem... items) {
+    public BaseUILayer(Base base, BaseCamera camera, BaseUIItem... items) {
+        super(base);
+
         this.listeners = Collections.synchronizedList(new ArrayList<BaseUIItem>(64));
         this.camera = camera;
         strictMode = false;
@@ -61,9 +66,11 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
 
     public void addUnder(BaseUIItem item, float spacing) {
 
-        add(item);
-        BaseUIItem last = listeners.get(listeners.size());
-        item.updatePosition(last.getX(), last.getY() + last.gethHeight() + item.gethHeight() + spacing);
+        synchronized (listeners) {
+            BaseUIItem last = listeners.get(listeners.size() - 1);
+            add(item);
+            item.updatePosition(last.getX(), last.getY() + last.gethHeight() + item.gethHeight() + spacing);
+        }
     }
 
     public void addUnder(float spacing, BaseUIItem... items) {
@@ -194,7 +201,7 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
         xmove = 0.0f;
         ymove = 0.0f;
         synchronized (listeners) {
-            for (BaseTouchListener listener : listeners) {
+            for (BaseUiTouchListener listener : listeners) {
                 listener.onTouchDown(id, x, y);
             }
         }
@@ -214,8 +221,10 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
         lastTouchedPosY = y;
         if (isSelectable()) {
             synchronized (listeners) {
-                for (BaseTouchListener listener : listeners) {
-                    listener.onTouchUp(id, x, y);
+                for (BaseUiTouchListener listener : listeners) {
+                    if (listener.onTouchUp(id, x, y)) {
+                        break;
+                    }
                 }
             }
         } else {
@@ -242,7 +251,7 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
         lastTouchedPosY = y;
 
         synchronized (listeners) {
-            for (BaseTouchListener listener : listeners) {
+            for (BaseUiTouchListener listener : listeners) {
                 listener.onTouchMove(id, x, y);
             }
         }
@@ -251,33 +260,53 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
     @Override
     public void draw() {
 
-        for (BaseRenderable listener : listeners) {
-            listener.draw();
+        BaseGL.useProgram(shader.glid);
+        synchronized (listeners) {
+            for (BaseRenderable listener : listeners) {
+                listener.draw();
+            }
         }
     }
 
     public void secondaryDrawPass() {
 
-        for (BaseUIItem listener : listeners) {
-            listener.secondaryDrawPass();
+        synchronized (listeners) {
+            for (BaseUIItem listener : listeners) {
+                listener.secondaryDrawPass();
+            }
         }
     }
 
     @Override
     public void update() {
 
-        for (BaseRenderable listener : listeners) {
-            listener.update();
+        synchronized (listeners) {
+            for (BaseRenderable listener : listeners) {
+                listener.update();
+            }
         }
     }
 
     @Override
     public void setShader(BaseShader shader) {
 
-        for (BaseRenderable listener : listeners) {
-            listener.setShader(shader);
+        synchronized (listeners) {
+            for (BaseRenderable listener : listeners) {
+                listener.setShader(shader);
+            }
+            super.setShader(shader);
         }
-        super.setShader(shader);
+    }
+
+    @Override
+    public void setCamera(BaseCamera camera) {
+
+        synchronized (listeners) {
+            for (BaseRenderable listener : listeners) {
+                listener.setCamera(camera);
+            }
+            super.setCamera(camera);
+        }
     }
 
     /**
@@ -320,9 +349,11 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
 
     public void destroyItems() {
 
-        for (BaseRenderable listener : listeners) {
-            if (listener != null) {
-                listener.destroy();
+        synchronized (listeners) {
+            for (BaseRenderable listener : listeners) {
+                if (listener != null) {
+                    listener.destroy();
+                }
             }
         }
     }
@@ -331,6 +362,7 @@ public class BaseUILayer extends BaseRenderable implements BaseTouchListener {
     public void destroy() {
 
         destroyItems();
+        listeners.clear();
     }
 
 }

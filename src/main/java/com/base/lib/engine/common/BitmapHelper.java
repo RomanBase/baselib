@@ -29,7 +29,7 @@ public class BitmapHelper {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inScaled = false;	// No pre-scaling
 
-        return BitmapFactory.decodeResource(Base.context.getResources(), resourceId, options);
+        return BitmapFactory.decodeResource(Base.appContext.getResources(), resourceId, options);
     }
 
     /**
@@ -45,7 +45,7 @@ public class BitmapHelper {
             final BitmapFactory.Options options = new BitmapFactory.Options();
             options.inScaled = false;	// No pre-scaling
 
-            InputStream is = Base.context.getAssets().open(file, AssetManager.ACCESS_STREAMING);
+            InputStream is = Base.appContext.getAssets().open(file, AssetManager.ACCESS_STREAMING);
             bitmap = BitmapFactory.decodeStream(is, null, options);
 
             is.close();

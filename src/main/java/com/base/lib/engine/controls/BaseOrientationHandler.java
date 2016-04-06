@@ -16,8 +16,8 @@ public abstract class BaseOrientationHandler extends OrientationEventListener im
     private boolean isEnabled = false;
 
     public BaseOrientationHandler() {
-        super(Base.context, SensorManager.SENSOR_DELAY_NORMAL);
-        Base.activity.addActivityStateListener(this);
+        super(Base.appContext, SensorManager.SENSOR_DELAY_NORMAL);
+        //todo Base.activity.addActivityStateListener(this);
     }
 
     protected abstract void orientationChanged(float rotationChange, float rotation);
@@ -85,6 +85,6 @@ public abstract class BaseOrientationHandler extends OrientationEventListener im
 
     public static boolean isScreenRotationEnabled(){
 
-       return System.getInt(Base.context.getContentResolver(), System.ACCELEROMETER_ROTATION, 0) == 1;
+       return System.getInt(Base.appContext.getContentResolver(), System.ACCELEROMETER_ROTATION, 0) == 1;
     }
 }

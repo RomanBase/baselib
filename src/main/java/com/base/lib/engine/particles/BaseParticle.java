@@ -2,8 +2,6 @@ package com.base.lib.engine.particles;
 
 import java.util.Random;
 
-import com.base.lib.engine.BaseTime;
-
 /**
  *
  */
@@ -31,8 +29,8 @@ public class BaseParticle {
             }
 
             @Override
-            public void update(float delta) {
-                actionRemainingTime -= BaseTime.delay;
+            public void update(float delta, float delay) {
+                actionRemainingTime -= delay;
 
                 if (actionRemainingTime > 0) {
                     progress = (float) actionRemainingTime /(float) actionLifeTime;

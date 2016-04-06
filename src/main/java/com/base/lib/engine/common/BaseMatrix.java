@@ -50,9 +50,10 @@ public class BaseMatrix {
         return out;
     }
 
-    public static void setSMIdentity() {
+    public static float[] setSMIdentity() {
 
         setIdentity(_matrix);
+        return _matrix;
     }
 
     public static void translate(float[] matrix, float x, float y, float z) {
@@ -266,12 +267,12 @@ public class BaseMatrix {
         Matrix.multiplyMM(matrix, 0, camera.mVPMatrix, 0, matrix, 0);
     }
 
-    public static void multiplyMCV(float[] matrix, BaseCamera camera){
+    public static void multiplyMCV(float[] matrix, BaseCamera camera) {
 
         Matrix.multiplyMM(matrix, 0, camera.VPMatrix[0], 0, matrix, 0);
     }
 
-    public static void multiplyMA2(float[] matrix, float[] src, float[] dst){
+    public static void multiplyMA2(float[] matrix, float[] src, float[] dst) {
 
         for (int i = 0; i < src.length; i += 2) {
             multiplyMV(matrix, src[i], src[i + 1], 0.0f);
@@ -323,6 +324,14 @@ public class BaseMatrix {
         dst[12] = src[12];
         dst[13] = src[13];
         dst[14] = src[14];
+    }
+
+    public static void copy(float[][] src, float[][] dst) {
+
+        for (int i = 0; i < src.length; i++) {
+            System.arraycopy(src[i], 0, dst[i], 0, 16);
+        }
+
     }
 
     public static void add(float[] matrix, float[] ma, float[] mb) {

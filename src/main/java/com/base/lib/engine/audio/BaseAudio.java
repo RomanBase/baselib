@@ -22,7 +22,7 @@ public class BaseAudio implements ActivityStateListener {
     /** create new instance of Media Player and prepare audio file from assets folder */
 	public BaseAudio(String file){
 
-        Base.activity.addActivityStateListener(this);
+        //Base.activity.addActivityStateListener(this); //// TODO: 22. 1. 2016  
 
         init();
         audioFile = file;
@@ -52,7 +52,7 @@ public class BaseAudio implements ActivityStateListener {
         prepareAudio();
 		
 		try {
-			final AssetFileDescriptor descriptor = Base.context.getAssets().openFd(audioFile);
+			final AssetFileDescriptor descriptor = Base.appContext.getAssets().openFd(audioFile);
 			player.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
 			descriptor.close();
 
@@ -65,7 +65,7 @@ public class BaseAudio implements ActivityStateListener {
     private void prepareUriAudio(){
 
         try {
-            player.setDataSource(Base.context, Uri.parse(audioFile));
+            player.setDataSource(Base.appContext, Uri.parse(audioFile));
             player.prepare();
         } catch (IOException e) {
             e.printStackTrace();
@@ -75,7 +75,7 @@ public class BaseAudio implements ActivityStateListener {
     private void prepareResourceAudio(){
 
         try {
-            player = MediaPlayer.create(Base.context, Integer.parseInt(audioFile));
+            player = MediaPlayer.create(Base.appContext, Integer.parseInt(audioFile));
             player.prepare();
         } catch (IOException e) {
             e.printStackTrace();

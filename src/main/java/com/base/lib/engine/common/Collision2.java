@@ -1,5 +1,7 @@
 package com.base.lib.engine.common;
 
+import com.base.lib.engine.common.other.Point2;
+
 /**
  * 14 Created by doctor on 16.7.13.
  */

@@ -1,5 +1,6 @@
 package com.base.lib.engine.other;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,7 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
-import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseActivity;
+import com.base.lib.engine.Screen;
 
 /**
  *
@@ -28,8 +30,13 @@ public class BasePreloadView extends View {
 
     private OnDimListener dimListener;
 
-    public BasePreloadView() {
-        super(Base.context);
+    private Activity activity;
+    private Screen screen;
+
+    public BasePreloadView(BaseActivity activity) {
+        super(activity);
+
+        this.activity = activity;
 
         screenDimensions();
         setCenterPos();
@@ -37,8 +44,10 @@ public class BasePreloadView extends View {
         addView();
     }
 
-    public BasePreloadView(float widthPercentage, float heightPercentage) {
-        super(Base.context);
+    public BasePreloadView(BaseActivity activity, float widthPercentage, float heightPercentage) {
+        super(activity);
+
+        this.activity = activity;
 
         screenDimensions();
         setCenterPos();
@@ -48,104 +57,104 @@ public class BasePreloadView extends View {
         addView();
     }
 
-    private void screenDimensions(){
+    private void screenDimensions() {
 
-        float[] dim = Base.getScreenDimensions(false);
-        x = dim[0];
-        y = dim[1];
+        x = screen.width;
+        y = screen.height;
     }
 
-    private void addView(){
+    private void addView() {
 
         paintView = new Paint();
         paintView.setColor(Color.BLACK);
-        layout = new RelativeLayout(Base.context);
+        layout = new RelativeLayout(activity);
         layout.addView(this);
     }
 
-    public void show(){
+    public void show() {
 
         /*if(takeScreen){
             screen = BaseGL.getScreen(0, 0, (int)Base.screenWidth, (int)Base.screenHeight);
         }*/
 
-        if(layout.getParent() != null){
-            ((ViewGroup)layout.getParent()).removeView(layout);
+        if (layout.getParent() != null) {
+            ((ViewGroup) layout.getParent()).removeView(layout);
         }
 
         rising = true;
         hintTime = SystemClock.uptimeMillis();
         layout.setVisibility(View.VISIBLE);
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Base.activity.addContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                activity.addContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
             }
         });
     }
 
-    public void showAsContentView(){
+    public void showAsContentView() {
 
         rising = true;
         hintTime = 0;
         layout.setVisibility(View.VISIBLE);
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Base.activity.setContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+                activity.setContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
             }
         });
     }
 
-    public void hide(){
+    public void hide() {
 
         rising = false;
         hintTime = SystemClock.uptimeMillis();
         invalidate();
     }
 
-    public void setCenterPos(){
+    public void setCenterPos() {
 
-        x = Base.screenWidth * 0.5f - w*0.5f;
-        y = Base.screenHeight * 0.5f - h*0.5f;
+        x = screen.width * 0.5f - w * 0.5f;
+        y = screen.height * 0.5f - h * 0.5f;
     }
 
-    public void setVerticalPos(float yPercentage){
+    public void setVerticalPos(float yPercentage) {
 
-        y = Base.screenHeight * yPercentage;
+        y = screen.height * yPercentage;
     }
 
-    public void setHorizontalPos(float xPercentage){
+    public void setHorizontalPos(float xPercentage) {
 
-        x = Base.screenWidth * xPercentage;
+        x = screen.width * xPercentage;
     }
 
     @Override
     public void draw(Canvas canvas) {
+        super.draw(canvas);
 
-        if(canvas == null){
+        if (canvas == null) {
             return;
         }
 
         long currentDelay = SystemClock.uptimeMillis() - hintTime;
-        if(rising) {
+        if (rising) {
             if (currentDelay < dimDelay) {
                 float progress = (float) currentDelay / (float) dimDelay;
-                if(progress > 1.0f) progress = 1.0f;
+                if (progress > 1.0f) progress = 1.0f;
                 paintView.setAlpha((int) (255.0f * progress));
-                canvas.drawRect(new RectF(0, 0, Base.screenWidth, Base.screenHeight), paintView);
-                if(loaderAction != null){
+                canvas.drawRect(new RectF(0, 0, screen.width, screen.height), paintView);
+                if (loaderAction != null) {
                     loaderAction.onRising(canvas, progress);
                 }
             } else {
                 paintView.setAlpha(255);
-                canvas.drawRect(new RectF(0, 0, Base.screenWidth, Base.screenHeight), paintView);
+                canvas.drawRect(new RectF(0, 0, screen.width, screen.height), paintView);
 
-                if(loaderAction != null){
+                if (loaderAction != null) {
                     loaderAction.onWaiting(canvas);
                 }
 
-                if(dimListener != null){
+                if (dimListener != null) {
                     dimListener.onDimmed();
                     dimListener = null;
                     invalidate();
@@ -156,12 +165,12 @@ public class BasePreloadView extends View {
             if (currentDelay < dimDelay) {
                 float progress = 1.0f - ((float) currentDelay / (float) dimDelay);
                 paintView.setAlpha((int) (255.0f * progress));
-                canvas.drawRect(new RectF(0, 0, Base.screenWidth, Base.screenHeight), paintView);
-                if(loaderAction != null){
+                canvas.drawRect(new RectF(0, 0, screen.width, screen.height), paintView);
+                if (loaderAction != null) {
                     loaderAction.onHiding(canvas, progress);
                 }
             } else {
-                ((ViewGroup)layout.getParent()).removeView(layout);
+                ((ViewGroup) layout.getParent()).removeView(layout);
                 layout.setVisibility(View.GONE);
             }
         }
@@ -186,26 +195,28 @@ public class BasePreloadView extends View {
         protected Matrix matrix;
         protected Paint paintAction;
 
-        public LoaderAction(){
+        public LoaderAction() {
 
             matrix = new Matrix();
             paintAction = new Paint();
         }
 
         public abstract void onRising(Canvas canvas, float progress);
+
         public abstract void onWaiting(Canvas canvas);
+
         public abstract void onHiding(Canvas canvas, float progress);
 
-        public void rect(Canvas canvas, Bitmap bitmap, float yposratio, float rot){
+        public void rect(Canvas canvas, Bitmap bitmap, float yposratio, float rot) {
 
             matrix.reset();
-            matrix.setTranslate(Base.screenWidth*0.5f-bitmap.getWidth()*0.5f, Base.screenHeight * yposratio - bitmap.getHeight()*0.5f);
-            matrix.postRotate(rot, Base.screenWidth*0.5f, Base.screenHeight * yposratio);
+            matrix.setTranslate(screen.width * 0.5f - bitmap.getWidth() * 0.5f, screen.height * yposratio - bitmap.getHeight() * 0.5f);
+            matrix.postRotate(rot, screen.width * 0.5f, screen.height * yposratio);
 
             canvas.drawBitmap(bitmap, matrix, paintAction);
         }
 
-        public void rect(Canvas canvas, Bitmap bitmap){
+        public void rect(Canvas canvas, Bitmap bitmap) {
 
             canvas.drawBitmap(bitmap, matrix, paintAction);
         }

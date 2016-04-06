@@ -1,13 +1,12 @@
 package com.base.lib.engine;
 
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -15,10 +14,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.view.View;
-import android.view.Window;
+import android.support.v4.app.FragmentActivity;
 import android.view.WindowManager;
 
+import com.base.lib.engine.builders.BaseBuilder;
+import com.base.lib.engine.builders.CameraBuilder;
+import com.base.lib.engine.builders.RenderConfig;
 import com.base.lib.googleservices.BaseAchievements;
 import com.base.lib.googleservices.BaseApiClient;
 import com.base.lib.googleservices.BaseInAppBilling;
@@ -35,20 +36,23 @@ import java.util.List;
  * automaticaly calls pause, resume on content view, audio manager etc.
  * creates new instace of Base class witch holds some info. about app
  */
-public abstract class BaseActivity extends Activity {
+public abstract class BaseActivity extends FragmentActivity {
 
     private int requestedScreenOrientation;
     private List<ActivityStateListener> activityStateListeners;
     private BaseInAppBilling inAppBilling;
     private BaseApiClient apiClient;
+    protected Base base;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Base.init(this);
 
         // Check if the system supports OpenGL ES 2.0.
-        if (!glesSupport(0x20000)) return;
+        if (!glesSupport(0x20000)) {
+            Base.logE("MISSING OPENGL ES (2+)");
+            return;
+        }
 
         // Set the hardware buttons to control the audio media volume
         this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -60,13 +64,21 @@ public abstract class BaseActivity extends Activity {
 
         activityStateListeners = new ArrayList<ActivityStateListener>();
 
-        onCreate(new BaseOptions());
+        Base.appContext = getApplicationContext();
+        base = onCreate(new BaseBuilder(this));
+        base.init(onCreateCamera(new CameraBuilder(base)), onCreateRender(new RenderConfig(base)));
+
+        setContentView(base.render.getView());
     }
 
     /**
      * is called on end of Activity onCreate(Bundle) function
      */
-    protected abstract void onCreate(BaseOptions cfg);
+    protected abstract Base onCreate(BaseBuilder builder);
+
+    protected abstract BaseCamera onCreateCamera(CameraBuilder builder);
+
+    protected abstract BaseRender onCreateRender(RenderConfig config);
 
     /**
      * check if deviace runs on 18+ api and hw supports gles 3
@@ -94,126 +106,6 @@ public abstract class BaseActivity extends Activity {
     }
 
     /**
-     * rotate screen to portrait orientation
-     */
-    protected void setScreenOrientationPortrait() {
-
-        requestedScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-    }
-
-    /**
-     * rotate screen to portrait orientation with reversed portrait rotation possibility
-     */
-    protected void setScreenOrientationSensorPortrait() {
-
-        requestedScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-    }
-
-    /**
-     * rotate screen to landscape orientation
-     */
-    protected void setScreenOrientationLandscape() {
-
-        requestedScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-    }
-
-    /**
-     * rotate screen to landscape orientation with reversed landscepe rotation possibility
-     */
-    protected void setScreenOrientationSensorLandscape() {
-
-        requestedScreenOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-    }
-
-    /**
-     * remove status bar and sets activity to whole screen
-     */
-    protected void setFullScreen() {
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    }
-
-    /**
-     * hides devices soft keys
-     * */
-    protected void hideVirtualUI() {
-
-        if (Build.VERSION.SDK_INT >= 19) {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LOW_PROFILE
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LOW_PROFILE);
-        }
-    }
-
-    /**
-     * hides devices soft keys
-     * note: this action is sent to ui thread
-     * */
-    public void hideScreenDeco() {
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (Base.isDeviceDecorated()) {
-                    hideVirtualUI();
-                }
-            }
-        });
-    }
-
-    /**
-     * sets screen brightness
-     * @param reqScreenBrightness 0.0 - 1.0
-     * */
-    protected void setScreenBrightness(float reqScreenBrightness) {
-
-        final Window window = getWindow();
-        final WindowManager.LayoutParams windowLayoutParams = window.getAttributes();
-        windowLayoutParams.screenBrightness = reqScreenBrightness;
-        window.setAttributes(windowLayoutParams);
-    }
-
-    /**
-     * prevent device to go sleep or dim display
-     */
-    protected void preventSleep() {
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-
-    /**
-     * sets activity content view
-     * can be called twice by system, when user starts with diferent screen orientation - use singletons or static classes etc..
-     */
-    protected void setView(BaseGLView view) {
-
-        setContentView(view);
-    }
-
-    /**
-     * sets activity content view
-     * can be called twice by system, when user starts with diferent screen orientation - use singletons or static classes etc..
-     */
-    protected void setView(BaseRender render) {
-
-        setContentView(render.getView());
-    }
-
-    /**
      * creates new instance of InAppBilling
      *
      * @param listener class for generating public key, listening user purchases and gathering products data
@@ -224,7 +116,7 @@ public abstract class BaseActivity extends Activity {
             inAppBilling.destroy();
             inAppBilling = null;
         }
-        inAppBilling = new BaseInAppBilling(listener.generatePublicKey(), listener);
+        inAppBilling = new BaseInAppBilling(base, listener.generatePublicKey(), listener);
     }
 
     /**
@@ -254,15 +146,15 @@ public abstract class BaseActivity extends Activity {
      * creates new instance of BaseApiClient and binds Base.glView as parent view for popups (just after when connection is established)
      *
      * @param hardConnect set to true if you want to try to connect when no internet connection is available
-     * */
+     */
     public void useAchievements(boolean hardConnect) {
 
-        BaseApiClient.init(hardConnect);
+        BaseApiClient.init(base, hardConnect);
         apiClient = BaseApiClient.getInstance();
         apiClient.setOnConnectedAction(new Runnable() {
             @Override
             public void run() {
-                BaseAchievements.bindParentViewForPopups(Base.glView);
+                BaseAchievements.bindParentViewForPopups(base.render.getView());
             }
         });
     }
@@ -326,14 +218,14 @@ public abstract class BaseActivity extends Activity {
         try {
             startActivity(getPackageManager().getLaunchIntentForPackage(packageName));
         } catch (ActivityNotFoundException e) {
-            Base.toast("Application " + packageName + " not found !");
+            Base.logE("Application " + packageName + " not found !");
             e.printStackTrace();
         }
     }
 
     /**
      * starts Google play app store with this app opened
-     * */
+     */
     public void showInGooglePlay() {
 
         showInGooglePlay(getPackageName());
@@ -343,7 +235,7 @@ public abstract class BaseActivity extends Activity {
      * starts Google play app store with specific app opened
      *
      * @param app_package package name of choosen app
-     * */
+     */
     public void showInGooglePlay(String app_package) {
 
         String url = "";
@@ -368,6 +260,13 @@ public abstract class BaseActivity extends Activity {
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        base.onConfigrationChanged();
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
 
@@ -376,7 +275,7 @@ public abstract class BaseActivity extends Activity {
         }
 
         if (apiClient != null && !apiClient.userNotLogIn()) {
-            if (Base.isConnected()) {
+            if (base.isConnected()) {
                 apiClient.connect();
             }
         }

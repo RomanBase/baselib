@@ -7,7 +7,7 @@ import android.media.SoundPool;
 import android.os.Build;
 
 import com.base.lib.engine.Base;
-import com.base.lib.engine.common.TrainedMonkey;
+import com.base.lib.engine.common.other.TrainedMonkey;
 import com.base.lib.interfaces.ActivityStateListener;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class BaseAudioPool implements ActivityStateListener {
 
         List<String> audioList = new ArrayList<String>();
         try {
-            String fileList[] = Base.context.getResources().getAssets().list(assetFolder);
+            String fileList[] = Base.appContext.getResources().getAssets().list(assetFolder);
 
             for (String file : fileList) {
                 String suffix = file.substring(file.lastIndexOf("."), file.length());
@@ -62,7 +62,7 @@ public class BaseAudioPool implements ActivityStateListener {
     }
 
     private void initAssets(String[] audioFiles) throws IOException {
-        Base.activity.addActivityStateListener(this);
+        //todo Base.activity.addActivityStateListener(this);
 
         final int count = audioFiles.length;
         audioList = audioFiles;
@@ -79,7 +79,7 @@ public class BaseAudioPool implements ActivityStateListener {
 
         audioID = new int[count];
 
-        AssetManager am = Base.context.getAssets();
+        AssetManager am = Base.appContext.getAssets();
         for (int i = 0; i < count; i++) {
             audioID[i] = soundpool.load(am.openFd(audioFiles[i]), 1);
         }

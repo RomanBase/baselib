@@ -13,7 +13,7 @@ import java.util.List;
 import com.base.lib.box.joints.B2RevoluteJoint;
 import com.base.lib.engine.BaseDrawable;
 import com.base.lib.engine.BaseRenderable;
-import com.base.lib.engine.common.Point2;
+import com.base.lib.engine.common.other.Point2;
 
 /**
  * 10 Created by doctor on 15.8.13.

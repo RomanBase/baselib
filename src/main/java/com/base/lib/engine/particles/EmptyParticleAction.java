@@ -11,7 +11,7 @@ public abstract class EmptyParticleAction {
     public float progress;
 
     public abstract void onActionEnds();
-    public abstract void update(float delta);
+    public abstract void update(float delta, float delay);
 
     public void setLifeTime(long millis){
         actionLifeTime = actionRemainingTime = millis;

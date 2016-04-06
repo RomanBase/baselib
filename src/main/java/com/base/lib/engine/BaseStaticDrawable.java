@@ -5,55 +5,54 @@ import com.base.lib.engine.common.BaseMatrix;
 /**
  *
  */
-public class BaseStaticDrawable extends BaseRenderable{
+public class BaseStaticDrawable extends BaseRenderable {
 
     protected float[] modelMatrix;
     protected DrawableBuffer buffer;
-    protected Texture texture = BaseGL.baseTexture;
+    protected BaseTexture texture = BaseGL.baseTexture;
 
-    public BaseStaticDrawable(){
+    public BaseStaticDrawable() {
 
-        modelMatrix = new float[16];
-        BaseMatrix.setIdentity(modelMatrix);
+        modelMatrix = BaseMatrix.newMatrix();
     }
 
-    public BaseStaticDrawable(DrawableBuffer buffer){
+    public BaseStaticDrawable(DrawableBuffer buffer) {
         this();
 
         this.buffer = buffer;
     }
 
-    public void translate(float x, float y, float z){
+    public void translate(float x, float y, float z) {
 
         BaseMatrix.translateS(modelMatrix, x, y, z);
     }
 
-    public void scale(float x, float y, float z){
+    public void scale(float x, float y, float z) {
 
         BaseMatrix.scale(modelMatrix, x, y, z);
     }
 
-    public void scale(float ratio){
+    public void scale(float ratio) {
 
         BaseMatrix.scale(modelMatrix, ratio, ratio, ratio);
     }
 
-    public void rotateZ(float angle){
+    public void rotateZ(float angle) {
 
         BaseMatrix.rotateZ(modelMatrix, angle);
     }
 
-    public void rotateY(float angle){
+    public void rotateY(float angle) {
 
         BaseMatrix.rotateY(modelMatrix, angle);
     }
 
-    public void rotateX(float angle){
+    public void rotateX(float angle) {
 
         BaseMatrix.rotateX(modelMatrix, angle);
     }
 
-    public void rotate(float x, float y, float z){
+    public void rotate(float x, float y, float z) {
 
         BaseMatrix.rotate(modelMatrix, x, y, z);
     }
@@ -74,11 +73,11 @@ public class BaseStaticDrawable extends BaseRenderable{
         this.buffer = buffer;
     }
 
-    public Texture getTexture() {
+    public BaseTexture getTexture() {
         return texture;
     }
 
-    public void setTexture(Texture texture) {
+    public void setTexture(BaseTexture texture) {
         this.texture = texture;
     }
 
@@ -89,14 +88,14 @@ public class BaseStaticDrawable extends BaseRenderable{
         this.buffer.shader = shader;
     }
 
-    public void glCalcAndPutMatrix(DrawableBuffer buffer){
+    public void glCalcAndPutMatrix(DrawableBuffer buffer) {
 
         BaseMatrix.multiplyMM(BaseMatrix._matrix, camera.mVPMatrix, modelMatrix);
         buffer.glPutMVPMatrix(BaseMatrix._matrix);
     }
 
     @Override
-    public void draw(){
+    public void draw() {
 
         buffer.glPutVerticeBuffer();
         buffer.glPutTextureBuffer();
@@ -106,13 +105,17 @@ public class BaseStaticDrawable extends BaseRenderable{
         buffer.glDisableAttribArray();
     }
 
-    /** Empty */
+    /**
+     * Empty
+     */
     @Override
     public void update() {
 
     }
 
-    /** Empty */
+    /**
+     * Empty
+     */
     @Override
     public void destroy() {
 

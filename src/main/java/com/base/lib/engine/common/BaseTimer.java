@@ -1,6 +1,5 @@
 package com.base.lib.engine.common;
 
-import com.base.lib.engine.BaseTime;
 import com.base.lib.engine.BaseUpdateable;
 
 /**
@@ -41,7 +40,7 @@ public abstract class BaseTimer extends BaseUpdateable{
     @Override
     public void update() {
 
-        if((currentDelay += BaseTime.delay) > delay){
+        if((currentDelay += base.time.delay) > delay){
             inUse = false;
             onDone();
         }

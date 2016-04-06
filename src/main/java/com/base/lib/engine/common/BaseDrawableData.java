@@ -1,5 +1,7 @@
 package com.base.lib.engine.common;
 
+import com.base.lib.engine.common.other.Point3;
+
 public class BaseDrawableData {
 
     public String name;

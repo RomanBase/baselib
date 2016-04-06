@@ -6,7 +6,7 @@ import com.base.lib.box.B2;
 import com.base.lib.box.B2Chain;
 import com.base.lib.box.B2Profile;
 import com.base.lib.engine.BaseRenderable;
-import com.base.lib.engine.common.Point2;
+import com.base.lib.engine.common.other.Point2;
 
 /**
  *

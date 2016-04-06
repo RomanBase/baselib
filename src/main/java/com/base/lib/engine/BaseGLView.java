@@ -5,8 +5,8 @@ import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
-import com.base.lib.engine.common.BaseTouchResponder;
-import com.base.lib.engine.other.dev.TouchMarker;
+import com.base.lib.engine.builders.RenderConfig;
+import com.base.lib.engine.common.other.TrainedMonkey;
 import com.base.lib.interfaces.ActivityStateListener;
 import com.base.lib.interfaces.BaseTouchListener;
 
@@ -21,6 +21,7 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
 
     private BaseThread baseThread;
     private final BaseRenderer renderer;
+    private final Base base;
     private float touchModifierX;
     private float touchModifierY;
     private BaseTouchListener touchListener;
@@ -29,55 +30,41 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
     /**
      * initialize GL context (OpenGL ES 2.0) and sets renderer
      */
-    public BaseGLView(BaseRenderer renderer) {
-        this(renderer, null, null);
-    }
-
-    /**
-     * initialize GL context (OpenGL ES 2.0) and sets renderer
-     *
-     * @param configChooser  can be null.
-     * @param contextFactory can be null.
-     */
-    public BaseGLView(BaseRenderer renderer, EGLConfigChooser configChooser, EGLContextFactory contextFactory) {
-        super(Base.context);
-
-        Base.glView = this;
-        Base.activity.addActivityStateListener(this);
-
-        touchModifierX = Base.screenWidth * 0.5f;
-        touchModifierY = Base.screenHeight * 0.5f;
+    public BaseGLView(RenderConfig config) {
+        super(config.base.context);
 
         // Create an OpenGL ES 2.0 context.
         setEGLContextClientVersion(2);
 
         //setPreserveEGLContextOnPause(true);
 
+        EGLConfigChooser configChooser = config.getEglConfigChooser();
         if (configChooser != null) {
             setEGLConfigChooser(configChooser);
         }
 
+        EGLContextFactory contextFactory = config.getEglContextFactory();
         if (contextFactory != null) {
             setEGLContextFactory(contextFactory);
         }
 
         if (Base.debug) {
             setDebugFlags(DEBUG_CHECK_GL_ERROR);
-            touchListener = new TouchMarker();
-        } else {
-            touchListener = new BaseTouchResponder();
         }
 
-        setRenderer(renderer);
+        this.base = config.base;
+        this.renderer = base.render;
+
+        touchModifierX = base.screen.width * 0.5f;
+        touchModifierY = base.screen.height * 0.5f;
+
+        setRenderer(base.render);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-        this.renderer = renderer;
-        renderer.setGLView(this);
 
         queueEvent(new Runnable() {
             @Override
             public void run() {
-                BaseGL.glThead = Thread.currentThread();
-                BaseGL.glThead.setPriority(Thread.MAX_PRIORITY);
+                base.gl.setRenderThread(Thread.currentThread());
             }
         });
 
@@ -85,7 +72,7 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
     }
 
     protected void init() {
-
+        Base.logD("BaseGLView initialized");
     }
 
     /**
@@ -147,13 +134,14 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
             super.onResume();
         }
 
-        if (renderer.isFPSRender() && BaseGL.GLCreated) {
-            BaseTime.deltaStep = 0.0f;
-            BaseTime.delta = 0.0f;
-            BaseTime.delay = 0.0f;
+        if (renderer != null && renderer.isFPSRender() && BaseGL.GLCreated) {
+            base.time.deltaStep = 0.0f;
+            base.time.delta = 0.0f;
+            base.time.delay = 0.0f;
+            renderer.onResume();
             renderer.onUpdateFrame();
             requestRender();
-            Base.activity.runOnUiThread(new Runnable() {
+            TrainedMonkey.handle(new Runnable() {
                 @Override
                 public void run() {
                     startRenderThread();
@@ -166,12 +154,15 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
     public void onPause() {
 
         stopRenderThread();
+        if(renderer != null){
+            renderer.onPause();
+        }
 
-        if (Base.isFinishing()) {
+        if (base.isFinishing()) {
             queueEvent(new Runnable() {
                 @Override
                 public void run() {
-                    BaseGL.destroy();
+                    base.gl.destroy();
                 }
             });
             super.onPause();
@@ -181,8 +172,8 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
     @Override
     public void destroy() {
 
+        stopRenderThread();
         renderer.destroy();
-
     }
 
     @Override
@@ -310,7 +301,7 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
                 calcFPS();
 
                 renderer.onUpdateFrame();
-                if(framesSkipped == renderDelay) {
+                if (framesSkipped == renderDelay) {
                     renderer.renderDone = false;
                     requestRender();
                     framesSkipped = 0;
@@ -356,9 +347,9 @@ public class BaseGLView extends GLSurfaceView implements ActivityStateListener {
 
             renderer.currentFPS = fpsSum / (float) fpsPool.length;
 
-            BaseTime.delay = lastFrameDelay;
-            BaseTime.deltaStep = (float) requestedFrameDelay / renderer.currentFPS;
-            BaseTime.delta = 1.0f / renderer.currentFPS;
+            base.time.delay = lastFrameDelay;
+            base.time.deltaStep = (float) requestedFrameDelay / renderer.currentFPS;
+            base.time.delta = 1.0f / renderer.currentFPS;
         }
 
         public int getFramesSkipped() {

@@ -6,20 +6,16 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.Bundle;
 
 import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.plus.Plus;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  *
@@ -43,9 +39,12 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
 
     private Runnable onConnectedAction;
 
-    private BaseApiClient() { //todo game/drive/etc. options
+    private final BaseActivity activity;
 
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(Base.context);
+    private BaseApiClient(BaseActivity activity) { //todo game/drive/etc. options
+        this.activity = activity;
+
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(activity);
         builder.addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
                 .addApi(Games.API).addScope(Games.SCOPE_GAMES)
                 .addConnectionCallbacks(this)
@@ -53,21 +52,21 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
 
         client = builder.build();
 
-        int code = GooglePlayServicesUtil.isGooglePlayServicesAvailable(Base.context);
+        int code = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
         if (code != ConnectionResult.SUCCESS) {
-            GooglePlayServicesUtil.getErrorDialog(code, Base.activity, 0);
+            GooglePlayServicesUtil.getErrorDialog(code, activity, 0);
         } else {
             Base.logV(TAG, "Google Play Service is available");
         }
     }
 
-    public static void init(boolean connectAnyways){
+    public static void init(Base base, boolean connectAnyways) {
 
         if (instance == null) {
-            instance = new BaseApiClient();
+            instance = new BaseApiClient(base.activity);
         }
 
-        if(Base.isConnected() || connectAnyways){
+        if (base.isConnected() || connectAnyways) {
             instance.connect();
         }
     }
@@ -130,7 +129,7 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
 
     public void setOnConnectedAction(final Runnable action) {
 
-        if(onConnectedAction == null) {
+        if (onConnectedAction == null) {
             onConnectedAction = action;
         } else {
             final Runnable temp = onConnectedAction;
@@ -144,25 +143,25 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
         }
     }
 
-    public void runAction(Runnable action){
-        if(client.isConnected()){
+    public void runAction(Runnable action) {
+        if (client.isConnected()) {
             action.run();
         } else {
             setOnConnectedAction(action);
         }
     }
 
-    public boolean userNotLogIn(){
+    public boolean userNotLogIn() {
 
         return userCenceled;
     }
 
-    public boolean userConnectable(){
+    public boolean userConnectable(Base base) {
 
-        return !userCenceled && Base.isConnected();
+        return !userCenceled && base.isConnected();
     }
 
-    public static void setConnectionErrorToast(String errorToast){
+    public static void setConnectionErrorToast(String errorToast) {
 
         errToast = errorToast;
     }
@@ -200,7 +199,7 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
         if (connectionResult.hasResolution()) {
             try {
                 Base.logV(TAG, "solving problem " + REQUEST_RESOLVE_ERROR);
-                connectionResult.startResolutionForResult(Base.activity, REQUEST_RESOLVE_ERROR);
+                connectionResult.startResolutionForResult(activity, REQUEST_RESOLVE_ERROR);
             } catch (IntentSender.SendIntentException e) {
                 connect();
             }
@@ -220,19 +219,19 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
             } else {
                 onConnectedAction = null;
                 Base.logE(TAG, requestCode + " solving failed at " + GameHelperUtils.activityResponseCodeToString(resultCode));
-                if(resultCode == GamesActivityResultCodes.RESULT_APP_MISCONFIGURED) {
-                    Base.logI(TAG, getSHA1CertFingerprint());
-                } else if(resultCode == Activity.RESULT_CANCELED){
+                if (resultCode == GamesActivityResultCodes.RESULT_APP_MISCONFIGURED) {
+                    //Base.logI(TAG, getSHA1CertFingerprint()); //TODO LOG FINGERPRINT
+                } else if (resultCode == Activity.RESULT_CANCELED) {
                     userCenceled = true;
                     Base.logV(TAG, "user cenceled to log in");
-                } else if(resultCode == GamesActivityResultCodes.RESULT_SIGN_IN_FAILED){
-                    if(errToast != null) {
-                        Base.toast(errToast);
+                } else if (resultCode == GamesActivityResultCodes.RESULT_SIGN_IN_FAILED) {
+                    if (errToast != null) {
+                        //Base.toast(errToast); //TODO
                     }
                 }
             }
-        } else if (requestCode == REQUEST_ACHIEVEMENTS || requestCode == REQUEST_LEADERBORDS){
-            if(resultCode == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED){
+        } else if (requestCode == REQUEST_ACHIEVEMENTS || requestCode == REQUEST_LEADERBORDS) {
+            if (resultCode == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED) {
                 Base.logV(TAG, "disconnected by user");
                 userCenceled = true;
                 disconnect();
@@ -249,7 +248,7 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
         Bundle args = new Bundle();
         args.putInt(DIALOG_ERROR, errorCode);
         dialogFragment.setArguments(args);
-        dialogFragment.show(Base.activity.getFragmentManager(), "errordialog");
+        dialogFragment.show(activity.getFragmentManager(), "errordialog");
     }
 
     /* Called from ErrorDialogFragment when the dialog is dismissed. */
@@ -277,41 +276,6 @@ public class BaseApiClient implements GoogleApiClient.ConnectionCallbacks, Googl
         public void onDismiss(DialogInterface dialog) {
             instance.onDialogDismissed();
         }
-    }
-
-    public static String getSHA1CertFingerprint() {
-        try {
-            Signature[] sigs = Base.context.getPackageManager().getPackageInfo(Base.context.getPackageName(), PackageManager.GET_SIGNATURES).signatures;
-            if (sigs.length == 0) {
-                return "ERROR: NO SIGNATURE.";
-            } else if (sigs.length > 1) {
-                return "ERROR: MULTIPLE SIGNATURES";
-            }
-            byte[] digest = MessageDigest.getInstance("SHA1").digest(sigs[0].toByteArray());
-            StringBuilder hexString = new StringBuilder();
-            for (int i = 0; i < digest.length; ++i) {
-                if (i > 0) {
-                    hexString.append(":");
-                }
-                byteToString(hexString, digest[i]);
-            }
-            return hexString.toString();
-
-        } catch (PackageManager.NameNotFoundException ex) {
-            ex.printStackTrace();
-            return "(ERROR: package not found)";
-        } catch (NoSuchAlgorithmException ex) {
-            ex.printStackTrace();
-            return "(ERROR: SHA1 algorithm not found)";
-        }
-    }
-
-    static void byteToString(StringBuilder sb, byte b) {
-        int unsigned_byte = b < 0 ? b + 256 : b;
-        int hi = unsigned_byte / 16;
-        int lo = unsigned_byte % 16;
-        sb.append("0123456789ABCDEF".substring(hi, hi + 1));
-        sb.append("0123456789ABCDEF".substring(lo, lo + 1));
     }
 
 }

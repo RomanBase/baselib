@@ -2,10 +2,8 @@ package com.base.lib.engine.font;
 
 import android.opengl.GLES20;
 
-import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseGL;
 import com.base.lib.engine.BaseRenderable;
-import com.base.lib.engine.BaseShader;
 import com.base.lib.engine.DrawableBuffer;
 import com.base.lib.engine.common.BaseDrawableData;
 import com.base.lib.engine.common.BaseMatrix;
@@ -28,7 +26,7 @@ public class BitmapFontRenderable extends BaseRenderable { //todo new shader a(x
         scale = 1.0f;
         text = new StringBuilder();
         color = new Colorf(1.0f, 1.0f, 1.0f, 1.0f);
-        shader = BaseShader.mixTextureColorShader();
+        // TODO: 31. 1. 2016  shader = BaseShader.mixTextureColorShader();
         BaseDrawableData data = DrawableData.RECTANGLE(1.0f, 1.0f);
         data.setOrigin(-0.5f, 0.5f);
         buffer = new DrawableBuffer(data);
@@ -88,7 +86,7 @@ public class BitmapFontRenderable extends BaseRenderable { //todo new shader a(x
             m[13] = py - l.offsetY * scale;
             m[14] = z;
             BaseMatrix.scale(m, l.xsize * scale, l.ysize * scale, 1.0f);
-            BaseMatrix.multiplyMC(m, Base.camera);
+            BaseMatrix.multiplyMC(m, base.camera);
 
             buffer.glPutMVPMatrix(m);
             buffer.glPutDraw();
@@ -128,7 +126,7 @@ public class BitmapFontRenderable extends BaseRenderable { //todo new shader a(x
             m[14] = z;
             BaseMatrix.rotateZ(m, -90.0f);
             BaseMatrix.scale(m, l.xsize * scale, l.ysize * scale, 1.0f);
-            BaseMatrix.multiplyMC(m, Base.camera);
+            BaseMatrix.multiplyMC(m, base.camera);
 
             buffer.glPutMVPMatrix(m);
             buffer.glPutDraw();
@@ -168,7 +166,7 @@ public class BitmapFontRenderable extends BaseRenderable { //todo new shader a(x
             m[14] = z;
             BaseMatrix.rotateZ(m, 90.0f);
             BaseMatrix.scale(m, l.xsize * scale, l.ysize * scale, 1.0f);
-            BaseMatrix.multiplyMC(m, Base.camera);
+            BaseMatrix.multiplyMC(m, base.camera);
 
             buffer.glPutMVPMatrix(m);
             buffer.glPutDraw();

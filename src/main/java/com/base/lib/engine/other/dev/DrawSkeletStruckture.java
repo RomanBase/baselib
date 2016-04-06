@@ -4,19 +4,18 @@ import android.opengl.GLES20;
 
 import com.base.lib.engine.BaseCamera;
 import com.base.lib.engine.BaseDrawable;
-import com.base.lib.engine.BaseShader;
-import com.base.lib.engine.DrawableBuffer;
-import com.base.lib.engine.common.BaseDrawableData;
 import com.base.lib.engine.BaseRenderable;
-import com.base.lib.engine.BaseSkelet;
-import com.base.lib.engine.Bone;
-import com.base.lib.engine.DrawableAction;
-import com.base.lib.engine.common.DrawableData;
-import com.base.lib.engine.SkeletAnimDrawable;
-import com.base.lib.engine.Texture;
+import com.base.lib.engine.DrawableBuffer;
+import com.base.lib.engine.BaseTexture;
+import com.base.lib.engine.animation.BaseSkelet;
+import com.base.lib.engine.animation.Bone;
+import com.base.lib.engine.animation.DrawableAction;
+import com.base.lib.engine.animation.SkeletAnimDrawable;
+import com.base.lib.engine.common.BaseDrawableData;
 import com.base.lib.engine.common.BaseMatrix;
 import com.base.lib.engine.common.Colorf;
-import com.base.lib.engine.common.Point3;
+import com.base.lib.engine.common.DrawableData;
+import com.base.lib.engine.common.other.Point3;
 import com.base.lib.interfaces.BaseTouchListener;
 
 /**
@@ -28,10 +27,10 @@ public class DrawSkeletStruckture extends BaseRenderable implements BaseTouchLis
     private BaseSkelet skelet;
     private SkeletAnimDrawable drawable;
 
-    public DrawSkeletStruckture(BaseSkelet skelet, BaseDrawableData data, Texture texture){
+    public DrawSkeletStruckture(BaseSkelet skelet, BaseDrawableData data, BaseTexture texture){
 
         this.skelet = skelet;
-        shader = BaseShader.get(1);
+        // TODO: 31. 1. 2016  shader = BaseShader.get(1);
 
         Bone[] bone = skelet.getBones();
         int count = bone.length;
@@ -77,11 +76,11 @@ public class DrawSkeletStruckture extends BaseRenderable implements BaseTouchLis
         }
 
         if(drawable != null){
-            if(drawable.getTexture().getGlid() != 0) {
-                BaseShader.get(0).useProgram();
+            if(drawable.getTexture().glid != 0) {
+                // TODO: 31. 1. 2016  BaseShader.get(0).useProgram();
             }
             drawable.draw();
-            BaseShader.get(1).useProgram();
+            // TODO: 31. 1. 2016  BaseShader.get(1).useProgram();
         }
     }
 
@@ -124,7 +123,7 @@ public class DrawSkeletStruckture extends BaseRenderable implements BaseTouchLis
             buffer.init(data);
             buffer.setCoordsPerColor(4);
 
-            shader = BaseShader.get(1);
+            // TODO: 31. 1. 2016  shader = BaseShader.get(1);
             buffer.setGlDrawMode(GLES20.GL_LINES);
 
             setCamera(camera);

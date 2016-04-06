@@ -3,29 +3,29 @@ package com.base.lib.engine;
 import android.opengl.GLES20;
 
 import com.base.lib.engine.common.BaseDrawableData;
-import com.base.lib.engine.common.Point3;
+import com.base.lib.engine.common.other.Point3;
 
 /**
  * 16 Created by doctor on 18.2.14.
  */
 public class BumpDrawableBuffer extends DrawableBuffer {
 
-    protected Texture bumpMap;
+    protected BaseTexture bumpMap;
     private Point3 lightPos;
 
     public BumpDrawableBuffer(BaseDrawableData data) {
         super(data);
-        shader = BaseShader.get(2);
+        // TODO: 31. 1. 2016  shader = BaseShader.get(2);
 
         lightPos = new Point3(0.0f, 1.0f, 1.25f);
     }
 
-    public void setBumpMap(Texture normalsTexture){
+    public void setBumpMap(BaseTexture normalsTexture){
 
         bumpMap = normalsTexture;
     }
 
-    public Texture getBumpMap(){
+    public BaseTexture getBumpMap(){
 
         return bumpMap;
     }

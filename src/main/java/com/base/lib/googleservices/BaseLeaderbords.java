@@ -1,7 +1,7 @@
 package com.base.lib.googleservices;
 
-import com.base.lib.engine.Base;
-import com.base.lib.engine.common.FileHelper;
+import com.base.lib.engine.BaseActivity;
+import com.base.lib.engine.common.file.FileHelper;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.GamesStatusCodes;
@@ -25,22 +25,22 @@ public class BaseLeaderbords {
         sudmit(FileHelper.resourceString(tableID), score);
     }
 
-    public static void showDefaultLeaderbordsActivity(String tableID){
+    public static void showDefaultLeaderbordsActivity(BaseActivity activity, String tableID){
 
         if(BaseApiClient.isConnected()) {
-            Base.activity.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(BaseApiClient.getClient(), tableID), BaseApiClient.REQUEST_LEADERBORDS);
+            activity.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(BaseApiClient.getClient(), tableID), BaseApiClient.REQUEST_LEADERBORDS);
         }
     }
 
-    public static void showDefaultLeaderbordsActivity(int tableID){
+    public static void showDefaultLeaderbordsActivity(BaseActivity activity, int tableID){
 
-        showDefaultLeaderbordsActivity(FileHelper.resourceString(tableID));
+        showDefaultLeaderbordsActivity(activity, FileHelper.resourceString(tableID));
     }
 
-    public static void showDefaultLeaderbordsActivity(){
+    public static void showDefaultLeaderbordsActivity(BaseActivity activity){
 
         if(BaseApiClient.isConnected()) {
-            Base.activity.startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(BaseApiClient.getClient()), BaseApiClient.REQUEST_LEADERBORDS);
+            activity.startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(BaseApiClient.getClient()), BaseApiClient.REQUEST_LEADERBORDS);
         }
     }
 

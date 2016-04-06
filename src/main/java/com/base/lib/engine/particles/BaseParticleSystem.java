@@ -1,11 +1,12 @@
 package com.base.lib.engine.particles;
 
+import android.support.annotation.Nullable;
+
 import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseGL;
 import com.base.lib.engine.BaseRenderable;
 import com.base.lib.engine.BaseShader;
-import com.base.lib.engine.BaseTime;
-import com.base.lib.engine.Texture;
+import com.base.lib.engine.BaseTexture;
 
 import java.util.Random;
 
@@ -14,7 +15,7 @@ import java.util.Random;
  */
 public class BaseParticleSystem extends BaseRenderable { //todo variables per sec instead of step? just think about it ;)
 
-    protected Random random = Base.random;
+    protected Random random;
 
     protected ParticleEmiter emiter;
     protected long minLifeTime, lifetimeOffset;
@@ -30,19 +31,18 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
     private boolean continiously;
     private boolean isEmitTime;
 
-    private Texture texture;
+    private BaseTexture texture;
     private ParticleBuffer buffer;
     private final BaseParticle[] particles;
     private final int capacity;
 
     /**
      * use a lof of setMethods to customize particle effect, create you own BaseParticle constructor and after effects via ParticleAction.,
+     *
      * @param capacity initial capacity of buffer
-     * @param buffer can be null
-     * @param constructor can be null
-     * @param emiter can be null
      */
-    public BaseParticleSystem(int capacity, ParticleBuffer buffer, ParticleConstructor constructor, ParticleEmiter emiter) {
+    public BaseParticleSystem(Base base, int capacity, @Nullable ParticleBuffer buffer, @Nullable ParticleConstructor constructor, @Nullable ParticleEmiter emiter) {
+        super(base);
 
         init();
         this.capacity = capacity;
@@ -76,13 +76,14 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         minSpeed = 0.01f;
         requestedCount = 1;
         spriteSize = 1.0f;
-        shader = BaseShader.get("particle");
+        shader = base.factory.getShader(BaseShader.INSTANCING);
+        random = base.random;
     }
 
-    public void reset(){
+    public void reset() {
 
         currentIndex = 0;
-        for(BaseParticle particle : particles){
+        for (BaseParticle particle : particles) {
             particle.inUse = false;
         }
     }
@@ -94,7 +95,7 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         }
     }
 
-    protected void initBaseParticles(){
+    protected void initBaseParticles() {
 
         initBaseParticles(new ParticleConstructor() {
             @Override
@@ -110,9 +111,9 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         buffer = customBuffer;
     }
 
-    public boolean isEmitTime(){
+    public boolean isEmitTime() {
 
-        return isEmitTime = (curretDelay += BaseTime.delay) > emitDelay;
+        return isEmitTime = (curretDelay += base.time.delay) > emitDelay;
     }
 
     public void emitParticles() {
@@ -120,7 +121,7 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         if (isEmitTime) {
             curretDelay = 0;
 
-            if(!inUse){
+            if (!inUse) {
                 use();
             }
 
@@ -140,8 +141,8 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
                 count = capacity;
             }
 
-            if (count > currentIndex+emiter.emitCount) {
-                for (int i = 0; i<emiter.emitCount; i++) {
+            if (count > currentIndex + emiter.emitCount) {
+                for (int i = 0; i < emiter.emitCount; i++) {
                     if (particles[currentIndex].inUse) {
                         return;
                     }
@@ -152,9 +153,9 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
                 while (currentIndex < count) {
                     emiter.currentFaceIndex = -3;
 
-                    if(cycle-- > 1){
-                        emitWholeEmiter(cycle, count, cycle*0.25f);
-                        emitWholeEmiter(cycle, count, -cycle*0.25f);
+                    if (cycle-- > 1) {
+                        emitWholeEmiter(cycle, count, cycle * 0.25f);
+                        emitWholeEmiter(cycle, count, -cycle * 0.25f);
                     } else {
                         emitWholeEmiter(cycle, count, random.nextFloat());
                         emitWholeEmiter(cycle, count, -random.nextFloat());
@@ -172,16 +173,16 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         }
     }
 
-    private void emitWholeEmiter(int cycle, int count, float modifier){ //todo emit in particle init
+    private void emitWholeEmiter(int cycle, int count, float modifier) { //todo emit in particle init
 
-        if(count - currentIndex < emiter.emitCount){
+        if (count - currentIndex < emiter.emitCount) {
             count = count - currentIndex;
         } else {
             count = emiter.emitCount;
         }
 
         float[] segment = ParticleEmiter.vecs;
-        for (int i = 0; i<count; i++){
+        for (int i = 0; i < count; i++) {
             BaseParticle particle = particles[currentIndex++];
             if (particle.inUse) {
                 break;
@@ -189,13 +190,13 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
             emiter.nextFaceIndex();
             particle.init(this, emiter.currentFaceIndex);
             emiter.getSegmentSize(emiter.currentFaceIndex);
-            particle.modifyPos(segment[0]*modifier, segment[1]*modifier, segment[2]*modifier);
+            particle.modifyPos(segment[0] * modifier, segment[1] * modifier, segment[2] * modifier);
         }
     }
 
-    public void emitContinuoslyWithDraw(){
+    public void emitContinuoslyWithDraw() {
 
-        if(isEmitTime()) {
+        if (isEmitTime()) {
             inUse = true;
             emitParticles();
         }
@@ -204,9 +205,9 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         draw();
     }
 
-    public void emitContinuosly(){
+    public void emitContinuosly() {
 
-        if(isEmitTime()) {
+        if (isEmitTime()) {
             emitParticles();
         }
     }
@@ -221,12 +222,12 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
 
         for (BaseParticle particle : particles) {
             if (particle.inUse) {
-                particle.action.update(BaseTime.deltaStep);
+                particle.action.update(base.time.delta, base.time.delay);
                 buffer.addParticleData(particle.data);
             }
         }
 
-        if(!buffer.isEmpty()) {
+        if (!buffer.isEmpty()) {
             BaseGL.bindTexture(texture.glid);
             buffer.draw(shader, camera, spriteSize);
         } else {
@@ -234,25 +235,26 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         }
     }
 
-    public Texture getTexture() {
+    public BaseTexture getTexture() {
         return texture;
     }
 
-    public void setTexture(Texture texture) {
+    public void setTexture(BaseTexture texture) {
         this.texture = texture;
         spriteSize = 1.0f;
         spriteCount = 1;
     }
 
-    public void setTexture(Texture texture, float spriteSize) {
+    public void setTexture(BaseTexture texture, int spritesPerRow) {
         this.texture = texture;
-        this.spriteSize = spriteSize;
-        spriteCount = (int) (1.0f/spriteSize);
+        this.spriteSize = 1.0f / (float) spritesPerRow;
+        spriteCount = spritesPerRow * spritesPerRow;
     }
 
     public void setEmiter(ParticleEmiter particleEmiter) {
 
         emiter = particleEmiter;
+        emiter.setRandom(random);
     }
 
     public void setLifeTime(long millis, long offset) {
@@ -378,7 +380,7 @@ public class BaseParticleSystem extends BaseRenderable { //todo variables per se
         return particles;
     }
 
-    public int getParticleDataLength(){
+    public int getParticleDataLength() {
         return particles[0].data.length;
     }
 

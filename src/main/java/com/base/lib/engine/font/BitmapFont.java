@@ -1,6 +1,6 @@
 package com.base.lib.engine.font;
 
-import com.base.lib.engine.Texture;
+import com.base.lib.engine.BaseTexture;
 
 /**
  *
@@ -8,13 +8,13 @@ import com.base.lib.engine.Texture;
 public class BitmapFont {
 
     protected BitmapLetter[] chars;
-    protected Texture texture;
+    protected BaseTexture texture;
 
     protected float size;
     protected float lineHeight;
     protected float base;
 
-    public void setTexture(Texture map){
+    public void setTexture(BaseTexture map){
 
         texture = map;
     }
@@ -106,7 +106,7 @@ public class BitmapFont {
         return chars;
     }
 
-    public Texture getTexture() {
+    public BaseTexture getTexture() {
         return texture;
     }
 

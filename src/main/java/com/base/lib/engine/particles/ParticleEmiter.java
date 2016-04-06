@@ -1,8 +1,9 @@
 package com.base.lib.engine.particles;
 
-import com.base.lib.engine.Base;
 import com.base.lib.engine.common.BaseDrawableData;
 import com.base.lib.engine.common.BaseMatrix;
+
+import java.util.Random;
 
 /**
  *
@@ -25,6 +26,7 @@ public class ParticleEmiter {
 
     private int loopCount;
 
+    private Random random;
 
     public int nextFaceIndex() {
 
@@ -84,23 +86,23 @@ public class ParticleEmiter {
         System.arraycopy(segments, 0, segmentsOut, 0, count);
     }
 
-    private void findLargestSegment(){
+    private void findLargestSegment() {
 
         largestSegment = 0;
         segmentsSurface = 0;
         float temp;
-        for(int i = 0; i< segments.length; i+=3){
+        for (int i = 0; i < segments.length; i += 3) {
             temp = getSegmentWeight(i);
             segmentsSurface += temp;
-            if(temp > largestSegment){
+            if (temp > largestSegment) {
                 largestSegment = temp;
             }
         }
     }
 
-    private float pow2(float num){
+    private float pow2(float num) {
 
-        return num*num;
+        return num * num;
     }
 
     private void normalizeVec(float[] vec) {
@@ -154,7 +156,7 @@ public class ParticleEmiter {
     public float[] getDir(int index, float randomness) {
 
         BaseMatrix.setSMIdentity();
-        BaseMatrix.rotateZ(BaseMatrix._matrix, -180.0f * randomness + 360.0f * randomness * Base.random.nextFloat());
+        BaseMatrix.rotateZ(BaseMatrix._matrix, -180.0f * randomness + 360.0f * randomness * random.nextFloat());
         float[] v = BaseMatrix.multiplyMV(BaseMatrix._matrix, normalsOut[index], normalsOut[index + 1], normalsOut[index + 2]);
 
         vecs[0] = v[0];
@@ -173,12 +175,12 @@ public class ParticleEmiter {
         return vecs;
     }
 
-    public float getSegmentWeight(int index){
+    public float getSegmentWeight(int index) {
 
-        return (float) Math.sqrt(pow2(segmentsOut[index])+pow2(segmentsOut[index+1])+pow2(segmentsOut[index+2]));
+        return (float) Math.sqrt(pow2(segmentsOut[index]) + pow2(segmentsOut[index + 1]) + pow2(segmentsOut[index + 2]));
     }
 
-    public void transformVertices(float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ){
+    public void transformVertices(float posX, float posY, float posZ, float scaleX, float scaleY, float scaleZ) {
 
         BaseMatrix.setSMIdentity();
         BaseMatrix.scale(BaseMatrix._matrix, scaleX, scaleY, scaleZ);
@@ -186,37 +188,68 @@ public class ParticleEmiter {
         BaseMatrix.multiplyMA(BaseMatrix._matrix, vertices, verticesOut);
     }
 
-    public void transformSegments(float scaleX, float scaleY, float scaleZ){
+    public void transformSegments(float scaleX, float scaleY, float scaleZ) {
 
         BaseMatrix.setSMIdentity();
         BaseMatrix.scale(BaseMatrix._matrix, scaleX, scaleY, scaleZ);
         BaseMatrix.multiplyMA(BaseMatrix._matrix, segments, segmentsOut);
     }
 
-    public void rotateDirections(float rotx, float roty, float rotz){
+    public void rotateVerticesZ(float rotZ) {
+
+        BaseMatrix.setSMIdentity();
+        BaseMatrix.rotateZ(BaseMatrix._matrix, rotZ);
+        BaseMatrix.multiplyMA(BaseMatrix._matrix, vertices, verticesOut);
+    }
+
+    public void rotateDirections(float rotx, float roty, float rotz) {
 
         BaseMatrix.setSMIdentity();
         BaseMatrix.rotate(BaseMatrix._matrix, rotx, roty, rotz);
         BaseMatrix.multiplyMA(BaseMatrix._matrix, normals, normalsOut);
     }
 
-    public void reverseDirection(){
+    public void reverseDirection() {
 
         BaseMatrix.setSMIdentity();
         BaseMatrix.rotateZ(BaseMatrix._matrix, 180.0f);
         BaseMatrix.multiplyMA(BaseMatrix._matrix, normals, normalsOut);
     }
 
-    public void translatePoint(float x, float y, float z){
+    public void translatePoint(float x, float y, float z) {
 
         verticesOut[0] = x;
         verticesOut[1] = y;
         verticesOut[2] = z;
     }
 
+    public void persist() {
+
+        vertices[0] = verticesOut[0];
+        vertices[1] = verticesOut[1];
+        vertices[2] = verticesOut[2];
+    }
+
+    public void direct() {
+
+        normalsOut[0] = verticesOut[0];
+        normalsOut[1] = verticesOut[1];
+        normalsOut[2] = verticesOut[2];
+
+        double m = Math.sqrt(normalsOut[0] * normalsOut[0] + normalsOut[1] * normalsOut[1] + normalsOut[2] * normalsOut[2]);
+
+        normalsOut[0] /= m;
+        normalsOut[1] /= m;
+        normalsOut[2] /= m;
+    }
+
     public int getEmit() {
 
         return emitCount;
+    }
+
+    public void setRandom(Random random) {
+        this.random = random;
     }
 
     public static ParticleEmiter point() {
@@ -236,11 +269,11 @@ public class ParticleEmiter {
         return emiter;
     }
 
-    public static ParticleEmiter rectangular(float width, float height){
+    public static ParticleEmiter rectangular(float width, float height) {
 
         float[] verts = new float[15];
-        float w = width*0.5f;
-        float h = height*0.5f;
+        float w = width * 0.5f;
+        float h = height * 0.5f;
 
         verts[0] = verts[9] = verts[12] = -w;
         verts[1] = verts[4] = verts[13] = h;

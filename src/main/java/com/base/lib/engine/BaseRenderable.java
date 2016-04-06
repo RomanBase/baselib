@@ -9,7 +9,16 @@ public abstract class BaseRenderable extends BaseUpdateable {
     /** shader program */
     protected BaseShader shader = BaseGL.baseShader;
     /** reference to camera */
-    protected BaseCamera camera = Base.camera;
+    protected BaseCamera camera;
+
+    public BaseRenderable() {
+    }
+
+    public BaseRenderable(Base base) {
+        super(base);
+
+        camera = base.camera;
+    }
 
     /** draw method */
     public abstract void draw();
@@ -47,7 +56,7 @@ public abstract class BaseRenderable extends BaseUpdateable {
     public void use() {
 
         inUse = true;
-        Base.render.addDrawable(this);
+        base.render.addDrawable(this);
     }
 
     @Override

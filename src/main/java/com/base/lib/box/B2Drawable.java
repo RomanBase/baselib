@@ -1,14 +1,13 @@
 package com.base.lib.box;
 
+import com.base.lib.engine.BaseDrawable;
+import com.base.lib.engine.DrawableBuffer;
+import com.base.lib.engine.common.BaseDrawableData;
+
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.FixtureDef;
-
-import com.base.lib.engine.Base;
-import com.base.lib.engine.BaseDrawable;
-import com.base.lib.engine.common.BaseDrawableData;
-import com.base.lib.engine.DrawableBuffer;
 
 /**
  * 19 Created by doctor on 15.1.14.
@@ -69,7 +68,7 @@ public class B2Drawable extends BaseDrawable implements B2BodyListener {
         if(body != null) {
             body.applyLinearImpulse(inpX, inpY, posX, posY);
         } else {
-            Base.render.runOnBaseThread(new Runnable() {
+            base.render.runOnBaseThread(new Runnable() {
                 @Override
                 public void run() {
                     impulse(inpX, inpY);

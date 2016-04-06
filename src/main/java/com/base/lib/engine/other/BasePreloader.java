@@ -3,13 +3,10 @@ package com.base.lib.engine.other;
 import android.opengl.GLES20;
 import android.os.SystemClock;
 
-import com.base.lib.engine.Base;
-import com.base.lib.engine.BaseDraw;
 import com.base.lib.engine.BaseGL;
 import com.base.lib.engine.BaseRender;
 import com.base.lib.engine.BaseRenderable;
-import com.base.lib.engine.BaseShader;
-import com.base.lib.engine.Texture;
+import com.base.lib.engine.BaseTexture;
 import com.base.lib.engine.common.Colorf;
 
 /**
@@ -31,47 +28,43 @@ public class BasePreloader extends BaseRenderable {
     private PreloadItem[] items;
     private Runnable[] actions;
     private Colorf color;
-    private Texture background;
+    private BaseTexture background;
     private long dimTimeout;
     private float currentDelay;
     private long timeHint;
 
-    public BasePreloader(long dimTimeout, Texture background, Runnable... actions) {
+    public BasePreloader(long dimTimeout, BaseTexture background, Runnable... actions) {
         super();
 
-        if(!BaseDraw.isInitialized()){
-            BaseDraw.init();
-        }
-
-        setShader(BaseShader.mixTextureColorShader());
+        // TODO: 31. 1. 2016  setShader(BaseShader.mixTextureColorShader());
         this.actions = actions;
         this.dimTimeout = dimTimeout;
         this.background = background;
 
         color = new Colorf(1.0f, 1.0f, 1.0f, 0.0f);
 
-        r = Base.camera.getNearNegativeRatio(z = Base.camera.getPosition().z + Base.camera.getNearZ() + 0.1f);
+        r = base.camera.getNearNegativeRatio(z = base.camera.getPosition().z + base.camera.getNearZ() + 0.1f);
 
-        w = Base.camera.getWidth() * r;
-        h = Base.camera.getHeight() * r;
+        w = base.camera.getWidth() * r;
+        h = base.camera.getHeight() * r;
 
-        if(actions != null) {
+        if (actions != null) {
             use();
         }
     }
 
     @Override
-    public void use(){
+    public void use() {
 
         currentState = RISING;
         currentDelay = 0;
         inUse = true;
         timeHint = SystemClock.uptimeMillis();
 
-        if(Base.render instanceof BaseRender){
-            ((BaseRender) Base.render).addPostDrawable(this);
+        if (base.render instanceof BaseRender) {
+            ((BaseRender) base.render).addPostDrawable(this);
         } else {
-            Base.render.addDrawable(this);
+            base.render.addDrawable(this);
         }
     }
 
@@ -97,12 +90,12 @@ public class BasePreloader extends BaseRenderable {
 
         BaseGL.bindTexture(background.glid);
         GLES20.glUniform4f(shader.handle[3], color.r, color.g, color.b, t);
-        BaseDraw.rect(shader, 0.0f, 0.0f, z, w, h);
+        //BaseDraw.rect(shader, 0.0f, 0.0f, z, w, h); //TODO
 
-        if(items != null) {
+        if (items != null) {
             GLES20.glUniform4f(shader.handle[3], 1.0f, 1.0f, 1.0f, t);
-            for(PreloadItem item : items){
-                if(item != null) {
+            for (PreloadItem item : items) {
+                if (item != null) {
                     item.draw();
                 }
             }
@@ -121,10 +114,10 @@ public class BasePreloader extends BaseRenderable {
                     t = (float) currentDelay / (float) dimTimeout;
                 } else {
                     currentState = LOADING;
-                    Base.render.runOnBaseThread(new Runnable() { // send to next tick
+                    base.render.runOnBaseThread(new Runnable() { // send to next tick
                         @Override
                         public void run() {
-                            Base.render.glQueueEvent(new Runnable() { // send to gl thread
+                            base.render.glQueueEvent(new Runnable() { // send to gl thread
                                 @Override
                                 public void run() {
                                     loadActions();
@@ -153,15 +146,15 @@ public class BasePreloader extends BaseRenderable {
         color.setf(r, g, b, 0.0f);
     }
 
-    public void setPreloadItems(PreloadItem... items){
+    public void setPreloadItems(PreloadItem... items) {
         this.items = items;
     }
 
-    public void setBackground(Texture texture){
+    public void setBackground(BaseTexture texture) {
         background = texture;
     }
 
-    public void setDimTimeout(long millis){
+    public void setDimTimeout(long millis) {
         dimTimeout = millis;
     }
 
@@ -186,9 +179,9 @@ public class BasePreloader extends BaseRenderable {
             this.h = h * r;
         }
 
-        protected void draw(){
+        protected void draw() {
 
-            BaseDraw.rect(shader, x, y, z, w, h);
+            //BaseDraw.rect(shader, x, y, z, w, h); //TODO
         }
     }
 }

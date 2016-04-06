@@ -2,22 +2,22 @@ package com.base.lib.engine;
 
 import android.opengl.GLES20;
 
-import com.base.lib.engine.common.FileHelper;
-import com.base.lib.engine.common.TrainedMonkey;
-import com.base.lib.engine.glcommon.ShaderHelper;
+import com.base.lib.engine.common.file.FileHelper;
+import com.base.lib.engine.common.gl.ShaderHelper;
+import com.base.lib.engine.common.other.TrainedMonkey;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 08 Created by doctor on 1.11.13.
- */
-public class BaseShader { //todo redesign (separate class for each predefined shaders)
 
-    protected static int collection;
+public class BaseShader implements Runnable {
 
-    public int id;
-    public int glProgram;
+    public static final String TEXTURE = "texture";
+    public static final String COLOR = "color";
+    public static final String TEXTURE_COLOR = "texture_color";
+    public static final String INSTANCING = "instancing";
+
+    public int glid;
     public int[] handle;
 
     private String name;
@@ -30,27 +30,19 @@ public class BaseShader { //todo redesign (separate class for each predefined sh
 
     private int collectionSize = 1024;
 
-    public BaseShader(boolean addToCollection, String name, String... atrs) {
+    private final BaseGL gl;
+
+    public BaseShader(BaseGL gl, String name, String... atrs) {
+        this.gl = gl;
+        gl.shaders.add(this);
 
         this.name = name;
         setAttributes(atrs);
-
-        if(addToCollection) {
-            id = collection++;
-        } else {
-            id = -1;
-        }
-
-        BaseGL.shaders.add(this);
     }
 
-    public BaseShader(String name, String... atrs) {
-        this(true, name, atrs);
-    }
+    public void setAttributes(String... atrs) {
 
-    public void setAttributes(String... atrs){
-
-        if(atrs != null) {
+        if (atrs != null) {
             attributes = atrs;
             handle = new int[atrs.length];
         }
@@ -64,61 +56,51 @@ public class BaseShader { //todo redesign (separate class for each predefined sh
         this.name = name;
     }
 
-    public int getHandle(int index){
+    public int getHandle(int index) {
 
         return handle[index];
     }
 
-    public int getHandle(String atr){
+    public int getHandle(String atr) {
 
         int index = -1;
-        for(int i = 0; i<attributes.length; i++){
-            if(attributes[i].equals(atr)){
+        for (int i = 0; i < attributes.length; i++) {
+            if (attributes[i].equals(atr)) {
                 index = i;
                 break;
             }
         }
 
-        if(index == -1){
+        if (index == -1) {
             Base.logE("Monkey's can't find attribute");
         }
 
         return handle[index];
     }
 
-    public String[] getAttributes(){
+    public String[] getAttributes() {
 
         return attributes;
     }
 
-    public int getAttributesCount(){
+    public int getAttributesCount() {
 
         return handle.length;
     }
 
-    public int getShaderId(){
-
-        return id;
-    }
-
-    public int getGlProgram(){
-
-        return glProgram;
-    }
-
-    public int getVertexShader(){
+    public int getVertexShader() {
 
         return vertexShader;
     }
 
-    public int getFragmentShader(){
+    public int getFragmentShader() {
 
         return fragmentShader;
     }
 
-    public void useProgram(){
+    public void useProgram() {
 
-        BaseGL.useProgram(glProgram);
+        BaseGL.useProgram(glid);
     }
 
     public int getCollectionSize() {
@@ -173,21 +155,13 @@ public class BaseShader { //todo redesign (separate class for each predefined sh
         this.vertexShaderCode = vertexShaderCode;
         this.fragmentShaderCode = fragmentShaderCode;
 
-        if (BaseGL.isOnGLThread()) {
-            createGLProgram();
-        } else {
-            Base.render.glQueueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    createGLProgram();
-                }
-            });
-        }
+        gl.glRun(this);
     }
 
-    protected void createGLProgram() {
+    @Override
+    public void run() {
 
-        if (glProgram == 0) {
+        if (glid == 0) {
             List<String> atrs = new ArrayList<String>();
             for (String atr : attributes) {
                 if (atr.startsWith("a")) {
@@ -196,26 +170,26 @@ public class BaseShader { //todo redesign (separate class for each predefined sh
             }
 
             vertexShader = ShaderHelper.compileShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
-            BaseGL.glError(name +" vertex");
+            BaseGL.glError(name + " vertex");
             fragmentShader = ShaderHelper.compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
-            BaseGL.glError(name +" fragment");
-            glProgram = ShaderHelper.createAndLinkProgram(vertexShader, fragmentShader, TrainedMonkey.toStringArray(atrs));
-            BaseGL.glError(name +" program");
+            BaseGL.glError(name + " fragment");
+            glid = ShaderHelper.createAndLinkProgram(vertexShader, fragmentShader, TrainedMonkey.toStringArray(atrs));
+            BaseGL.glError(name + " program");
 
             for (int i = 0; i < attributes.length; i++) {
                 switch (attributes[i].charAt(0)) {
                     case 'u':
-                        handle[i] = GLES20.glGetUniformLocation(glProgram, attributes[i]);
+                        handle[i] = GLES20.glGetUniformLocation(glid, attributes[i]);
                         break;
                     case 'a':
-                        handle[i] = GLES20.glGetAttribLocation(glProgram, attributes[i]);
+                        handle[i] = GLES20.glGetAttribLocation(glid, attributes[i]);
                         break;
                     default:
-                        handle[i] = GLES20.glGetUniformLocation(glProgram, attributes[i]);
+                        handle[i] = GLES20.glGetUniformLocation(glid, attributes[i]);
                 }
             }
 
-            BaseGL.glError(name +" attribs");
+            BaseGL.glError(name + " attribs");
         }
     }
 
@@ -223,56 +197,15 @@ public class BaseShader { //todo redesign (separate class for each predefined sh
 
         GLES20.glDeleteShader(vertexShader);
         GLES20.glDeleteShader(fragmentShader);
-        GLES20.glDeleteProgram(glProgram);
-        glProgram = 0;
+        GLES20.glDeleteProgram(glid);
+        glid = 0;
         vertexShader = 0;
         fragmentShader = 0;
-    }
-
-    public static BaseShader get(int i){
-
-        return BaseGL.shaders.get(i);
-    }
-
-    public static BaseShader get(String name){
-
-        for(BaseShader shader : BaseGL.shaders){
-            if(name.equals(shader.name)){
-                return shader;
-            }
-        }
-
-        return null;
     }
 
     @Override
     public String toString() {
 
-        return "Shader "+ id +" " + name +"  glid:" + glProgram;
-    }
-
-    public static BaseShader textureShader(){
-
-        return get("texture");
-    }
-
-    public static BaseShader perVertexColorShader(){
-
-        return get("color");
-    }
-
-    public static BaseShader bumpmapShader(){
-
-        return get("bump");
-    }
-
-    public static BaseShader mixTextureColorShader(){
-
-        return get("mix");
-    }
-
-    public static BaseShader oneColorShader(){
-
-        return get(BaseGL.SHADERS[4]);
+        return "Shader " + name + "  glid:" + glid;
     }
 }

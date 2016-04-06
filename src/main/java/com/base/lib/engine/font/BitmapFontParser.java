@@ -1,7 +1,7 @@
 package com.base.lib.engine.font;
 
-import com.base.lib.engine.Texture;
-import com.base.lib.engine.common.BaseParser;
+import com.base.lib.engine.BaseTexture;
+import com.base.lib.engine.common.file.BaseParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class BitmapFontParser extends BaseParser {
         return font;
     }
 
-    public BitmapFont getFont(Texture texture){
+    public BitmapFont getFont(BaseTexture texture){
 
         font.setTexture(texture);
 

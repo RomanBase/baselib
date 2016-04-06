@@ -1,5 +1,8 @@
 package com.base.lib.box;
 
+import com.base.lib.engine.Base;
+import com.base.lib.engine.common.other.Point2;
+
 import org.jbox2d.collision.shapes.ChainShape;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
@@ -9,9 +12,6 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.Filter;
 import org.jbox2d.dynamics.FixtureDef;
 import org.jbox2d.dynamics.World;
-
-import com.base.lib.engine.Base;
-import com.base.lib.engine.common.Point2;
 
 /**
  * 14 Created by doctor on 12.8.13.
@@ -78,18 +78,18 @@ public class B2 {
         return FILTER;
     }
 
-    public static void calcRatio(){
+    public static void calcRatio(Base base){
 
         if(width + height == 0){
-            width = Base.camera.getSemiWidth()*2.0f;
-            height = Base.camera.getSemiHeight()*2.0f;
+            width = base.camera.getSemiWidth()*2.0f;
+            height = base.camera.getSemiHeight()*2.0f;
         }
 
         ratio = width/height;
-        ratioX = Base.screenWidth/width;
-        ratioY = Base.screenHeight/height;
-        b2ratioX = width/Base.screenWidth;
-        b2ratioY = height/Base.screenHeight;
+        ratioX = base.screen.width/width;
+        ratioY = base.screen.height/height;
+        b2ratioX = width/base.screen.width;
+        b2ratioY = height/base.screen.height;
     }
 
     public static float pixelsToMetersX(float pixels){

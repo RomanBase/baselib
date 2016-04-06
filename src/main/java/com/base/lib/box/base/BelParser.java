@@ -1,10 +1,11 @@
 package com.base.lib.box.base;
 
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
 
 import com.base.lib.engine.Base;
-import com.base.lib.engine.common.FileHelper;
+import com.base.lib.engine.common.file.FileHelper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -34,10 +35,10 @@ public class BelParser {
 
     private BelParser(){}
 
-    public BelParser(String file) {
+    public BelParser(Context context, String file) {
 
         try {
-            InputStream is = Base.context.getAssets().open(file, AssetManager.ACCESS_STREAMING);
+            InputStream is = context.getAssets().open(file, AssetManager.ACCESS_STREAMING);
             readFileFromIS(new BufferedInputStream(is));
         } catch (IOException e) {
             Base.logE("BelParser", e.getMessage());
@@ -45,10 +46,10 @@ public class BelParser {
 
     }
 
-    public BelParser(int resourceID) {
+    public BelParser(Context context, int resourceID) {
 
         try {
-            InputStream is = Base.context.getResources().openRawResource(resourceID);
+            InputStream is = context.getResources().openRawResource(resourceID);
             readFileFromIS(new BufferedInputStream(is));
         } catch (IOException e) {
             Base.logE("BelParser", e.getMessage());
@@ -182,14 +183,14 @@ public class BelParser {
         return new BaseSensorGroup(sensors);
     }
 
-    public static BelParser assets(String path){
+    public static BelParser assets(Context context, String path){
 
-        return new BelParser(path);
+        return new BelParser(context, path);
     }
 
-    public static BelParser resource(int resourceId){
+    public static BelParser resource(Context context, int resourceId){
 
-        return new BelParser(resourceId);
+        return new BelParser(context, resourceId);
     }
 
     public static BelParser internal(String name){

@@ -1,10 +1,13 @@
 package com.base.lib.googleservices;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseActivity;
+import com.base.lib.engine.Screen;
 import com.base.lib.interfaces.ActivityStateListener;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -22,26 +25,33 @@ public class BaseAdMod implements ActivityStateListener {
     private RelativeLayout layout;
     private AdRequest request;
 
-    public BaseAdMod(String banner_ca_app_pub, String interstitial_ca_app_pub) {
-        this(null, banner_ca_app_pub, interstitial_ca_app_pub);
+    private final BaseActivity activity;
+    private final Screen screen;
+    private final Context context;
+
+    public BaseAdMod(Base base, String banner_ca_app_pub, String interstitial_ca_app_pub) {
+        this(base, null, banner_ca_app_pub, interstitial_ca_app_pub);
     }
 
-    public BaseAdMod(AdRequest adRequest, String banner_ca_app_pub, String interstitial_ca_app_pub) {
-        this(adRequest, AdSize.SMART_BANNER, banner_ca_app_pub, interstitial_ca_app_pub);
+    public BaseAdMod(Base base, AdRequest adRequest, String banner_ca_app_pub, String interstitial_ca_app_pub) {
+        this(base, adRequest, AdSize.SMART_BANNER, banner_ca_app_pub, interstitial_ca_app_pub);
     }
 
-    public BaseAdMod(AdRequest adRequest, AdSize adSize, String banner_ca_app_pub, String interstitial_ca_app_pub) {
+    public BaseAdMod(Base base, AdRequest adRequest, AdSize adSize, String banner_ca_app_pub, String interstitial_ca_app_pub) {
+        this.activity = base.activity;
+        this.screen = base.screen;
+        this.context = base.appContext;
 
-        Base.activity.addActivityStateListener(this);
+        activity.addActivityStateListener(this);
 
         request = adRequest == null ? new AdRequest.Builder().build() : adRequest;
 
         if (banner_ca_app_pub != null && !banner_ca_app_pub.isEmpty()) {
-            adView = new AdView(Base.context);
+            adView = new AdView(context);
             adView.setAdUnitId(banner_ca_app_pub);
             adView.setAdSize(adSize);
 
-            layout = new RelativeLayout(Base.context);
+            layout = new RelativeLayout(context);
             layout.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
             layout.addView(adView);
             layout.setVisibility(View.GONE);
@@ -50,7 +60,7 @@ public class BaseAdMod implements ActivityStateListener {
         }
 
         if (interstitial_ca_app_pub != null && !interstitial_ca_app_pub.isEmpty()) {
-            interstitial = new InterstitialAd(Base.context);
+            interstitial = new InterstitialAd(context);
             interstitial.setAdListener(new InterstitialAdListener());
             interstitial.setAdUnitId(interstitial_ca_app_pub);
 
@@ -65,7 +75,7 @@ public class BaseAdMod implements ActivityStateListener {
 
     public int getAdSize(){
 
-       return adView.getAdSize().getHeightInPixels(Base.context);
+       return adView.getAdSize().getHeightInPixels(context);
     }
 
     public boolean isVisible(){
@@ -75,28 +85,28 @@ public class BaseAdMod implements ActivityStateListener {
 
     public void showAtBottom() {
 
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                showAtPosition(Base.screenWidth / 2 - adView.getAdSize().getWidthInPixels(Base.context) / 2,
-                        Base.screenHeight - adView.getAdSize().getHeightInPixels(Base.context));
+                showAtPosition(screen.width / 2 - adView.getAdSize().getWidthInPixels(context) / 2,
+                        screen.height - adView.getAdSize().getHeightInPixels(context));
             }
         });
     }
 
     public void showAtTop() {
 
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                showAtPosition(Base.screenWidth / 2 - adView.getAdSize().getWidthInPixels(Base.context) / 2, 0);
+                showAtPosition(screen.width / 2 - adView.getAdSize().getWidthInPixels(context) / 2, 0);
             }
         });
     }
 
     public void showAt(final float x, final float y) {
 
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 showAtPosition(x, y);
@@ -114,12 +124,12 @@ public class BaseAdMod implements ActivityStateListener {
 
         layout.setX(x);
         layout.setY(y);
-        Base.activity.addContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+        activity.addContentView(layout, new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
     }
 
     public void hide() {
 
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (layout.getVisibility() == View.VISIBLE) {
@@ -134,7 +144,7 @@ public class BaseAdMod implements ActivityStateListener {
 
     public void showInterstitial() {
 
-        Base.activity.runOnUiThread(new Runnable() {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (interstitial.isLoaded()) {

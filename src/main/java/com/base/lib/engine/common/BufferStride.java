@@ -7,7 +7,6 @@ import java.nio.FloatBuffer;
  */
 public class BufferStride {
 
-
     public static FloatBuffer stride332(float[] verts, float[] norms, float[] texts){
 
         float[] data = new float[verts.length + norms.length + texts.length];

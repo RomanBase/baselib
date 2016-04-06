@@ -4,14 +4,15 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
+import com.base.lib.engine.Base;
+import com.base.lib.engine.BaseGL;
+import com.base.lib.engine.Type;
+import com.base.lib.engine.common.file.FileHelper;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import com.base.lib.engine.Base;
-import com.base.lib.engine.BaseGL;
-import com.base.lib.engine.Type;
 
 /**
  * 10 Created by doctor on 16.8.13.
@@ -54,7 +55,7 @@ public class TextureAtlas {
 
     public void add(int resourceId){
 
-        add(BitmapHelper.loadBitmap(resourceId), Base.context.getResources().getResourceName(resourceId));
+        add(BitmapHelper.loadBitmap(resourceId), Base.appContext.getResources().getResourceName(resourceId));
     }
 
     public void add(byte[] bytes, String name){
@@ -67,7 +68,7 @@ public class TextureAtlas {
         float w = bitmap.getWidth();
         float h = bitmap.getHeight();
 
-        if(prescale){
+        /*if(prescale){ //todo
 
             if(w > Base.screenWidth) w = Base.screenWidth;
 
@@ -76,7 +77,7 @@ public class TextureAtlas {
             if(w != bitmap.getWidth() || h != bitmap.getHeight()){
                 bitmap = Bitmap.createScaledBitmap(bitmap, (int)w, (int)h, true);  //scale down
             }
-        }
+        }*/
 
         dim += w*h;
         if(dim > maxDim){

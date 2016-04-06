@@ -5,7 +5,7 @@ import android.opengl.GLES20;
 import com.base.lib.engine.BaseCamera;
 import com.base.lib.engine.BaseShader;
 import com.base.lib.engine.common.Buffers;
-import com.base.lib.engine.glcommon.BaseGLBuffer;
+import com.base.lib.engine.common.gl.BaseGLBuffer;
 
 import java.nio.FloatBuffer;
 

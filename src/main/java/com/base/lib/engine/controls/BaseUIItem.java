@@ -1,16 +1,15 @@
 package com.base.lib.engine.controls;
 
-import com.base.lib.engine.Base;
 import com.base.lib.engine.BaseRender;
 import com.base.lib.engine.BaseRenderable;
 import com.base.lib.engine.DrawableModel;
-import com.base.lib.engine.common.Point2;
-import com.base.lib.interfaces.BaseTouchListener;
+import com.base.lib.engine.common.other.Point2;
+import com.base.lib.interfaces.BaseUiTouchListener;
 
 /**
  *
  */
-public abstract class BaseUIItem extends BaseRenderable implements BaseTouchListener {
+public abstract class BaseUIItem extends BaseRenderable implements BaseUiTouchListener {
 
     protected float x;
     protected float y;
@@ -34,7 +33,7 @@ public abstract class BaseUIItem extends BaseRenderable implements BaseTouchList
 
     public abstract void onGoDown();
 
-    public abstract void onGoUp(boolean above);
+    public abstract boolean onGoUp(boolean above);
 
     public abstract boolean isTouched(float x, float y);
 
@@ -48,16 +47,16 @@ public abstract class BaseUIItem extends BaseRenderable implements BaseTouchList
 
     }
 
-    public void secondaryDrawPass(){
+    public void secondaryDrawPass() {
 
     }
 
     public void setItemInfo(DrawableModel model) {
 
-        x = model.getPosX();
-        y = model.getPosY();
-        hWidth = model.getSizeX() * 0.5f;
-        hHeight = model.getSizeY() * 0.5f;
+        x = model.posX;
+        y = model.posY;
+        hWidth = model.sizeX * 0.5f;
+        hHeight = model.sizeY * 0.5f;
     }
 
     public void setItemInfo(float posX, float posY, float hWidth, float hHeight) {
@@ -90,10 +89,10 @@ public abstract class BaseUIItem extends BaseRenderable implements BaseTouchList
         onGoDown();
     }
 
-    protected void goUp(boolean above) {
+    protected boolean goUp(boolean above) {
 
         touchID = -1;
-        onGoUp(above);
+        return onGoUp(above);
     }
 
     @Override
@@ -107,11 +106,10 @@ public abstract class BaseUIItem extends BaseRenderable implements BaseTouchList
     }
 
     @Override
-    public void onTouchUp(int id, float x, float y) {
+    public boolean onTouchUp(int id, float x, float y) {
 
-        if (touchID == id) {
-            goUp(isTouched(x, y));
-        }
+        return touchID == id && goUp(isTouched(x, y));
+
     }
 
     @Override
@@ -147,13 +145,13 @@ public abstract class BaseUIItem extends BaseRenderable implements BaseTouchList
 
     public BaseUIItem register() {
 
-        ((BaseRender) Base.render).getUiLayer().add(weakRef());
+        ((BaseRender) base.render).getUiLayer().add(weakRef());
         return this;
     }
 
     public BaseUIItem unregister() {
 
-        ((BaseRender) Base.render).getUiLayer().remove(weakRef());
+        ((BaseRender) base.render).getUiLayer().remove(weakRef());
         return this;
     }
 

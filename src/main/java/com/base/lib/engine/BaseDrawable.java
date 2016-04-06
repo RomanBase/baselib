@@ -10,9 +10,14 @@ public class BaseDrawable extends DrawableModel {
     protected DrawableBuffer buffer;
 
     public BaseDrawable(){
-        super();
 
         buffer = new DrawableBuffer();
+    }
+
+    public BaseDrawable(Base base, BaseDrawableData data){
+        super(base);
+
+        init(new DrawableBuffer(data));
     }
 
     public BaseDrawable(BaseDrawableData data){
@@ -20,7 +25,6 @@ public class BaseDrawable extends DrawableModel {
     }
 
     public BaseDrawable(DrawableBuffer dbuffer){
-        super();
 
         init(dbuffer);
     }

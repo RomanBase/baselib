@@ -1,129 +1,121 @@
 package com.base.lib.engine;
 
-import com.base.lib.engine.common.TrainedMonkey;
-import com.base.lib.interfaces.ActivityStateListener;
+import com.base.lib.interfaces.GLPoolRunnable;
+import com.base.lib.engine.common.gl.EGLHolder;
+import com.base.lib.engine.common.other.TrainedMonkey;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-
 /**
  *
  */
-public class BaseActionPool extends Thread implements ActivityStateListener{
+public class BaseActionPool extends Thread {
 
-    private static BaseActionPool instance;
+    private List<Runnable> actions;
+    private List<GLPoolRunnable> glActions;
 
-    private static List<Runnable> runnables;
-    private static List<Runnable> glActions;
+    private EGLHolder egl;
 
-    private static EGL10 egl;
-    private static EGLContext glContext;
-    private static EGLSurface glSurface;
-    private static EGLDisplay display;
-    private static EGLSurface localSurface;
+    private boolean running;
+    private boolean eglInitialized;
 
-    private static boolean running;
+    private final Object glLock = new Object();
 
-    private BaseActionPool(){
+    private BaseRenderer render;
 
-        Base.activity.addActivityStateListener(this);
-        runnables = new ArrayList<Runnable>(8);
-        glActions = new ArrayList<Runnable>(8);
+    public BaseActionPool() {
+        setName("BaseActionPool");
 
+        actions = new ArrayList<Runnable>(64);
+        glActions = new ArrayList<GLPoolRunnable>(64);
+    }
+
+    public void initEGL(EGLHolder egl, BaseRenderer render) {
+
+        this.render = render;
+        this.egl = egl;
+        eglInitialized = true;
         running = true;
         start();
     }
 
-    public static void initGLContext(EGL10 egl10, EGLContext renderContext, EGLDisplay display, EGLConfig eglConfig){
+    public void addTask(Runnable action) {
 
-        egl = egl10;
-        glContext = egl.eglCreateContext(display, eglConfig, renderContext, null);
-        int pbufferAttribs[] = { EGL10.EGL_WIDTH, 1, EGL10.EGL_HEIGHT, 1, EGL10.EGL_NONE };
+        actions.add(action);
 
-        localSurface = egl.eglCreatePbufferSurface(display, eglConfig, pbufferAttribs);
-        BaseGL.glError("BaseActionPool");
-    }
-
-    public static void addTask(Runnable action){
-
-        if(instance == null){
-            instance = new BaseActionPool();
+        if (eglInitialized) {
+            TrainedMonkey.notify(this);
         }
-
-        runnables.add(action);
-        TrainedMonkey.notify(instance);
     }
 
-    public static void addGLTask(Runnable action){
+    public void addGLTask(GLPoolRunnable action) {
 
-        if(instance == null){
-            instance = new BaseActionPool();
+        synchronized (glLock) {
+            glActions.add(action);
+
+            if (eglInitialized) {
+                TrainedMonkey.notify(this);
+            }
         }
-
-        glActions.add(action);
-        TrainedMonkey.notify(instance);
     }
 
+    public void kill() {
+
+        eglInitialized = false;
+        running = false;
+        interrupt();
+        actions.clear();
+        glActions.clear();
+    }
 
     @Override
     public void run() {
 
-        while (running){
+        /*while (!eglInitialized) {
+            TrainedMonkey.sleep(this, 30);
+            eglInitialized = egl != null && egl.surface != null;
+        }
 
-            if(!runnables.isEmpty()) {
-                for (Runnable action : runnables) {
+        boolean eglBinded = egl.egl.eglMakeCurrent(egl.display, egl.surface, egl.surface, egl.context);
+        if (eglBinded) {
+            Base.logV("Separate EGL maked");
+        } else {
+            Base.logE("Separate EGL failed!");
+        }*/
+
+        while (running) {
+
+            if (!actions.isEmpty()) {
+                for (Runnable action : actions) {
                     if (action != null) {
                         action.run();
                     }
                 }
 
-                runnables.clear();
+                actions.clear();
             }
 
-            if(!glActions.isEmpty() && egl != null) {
-
-                egl.eglMakeCurrent(display, localSurface, localSurface, glContext);
-                for (Runnable action : glActions) {
-                    if (action != null) {
-                        action.run();
+            if (!glActions.isEmpty()) {
+                synchronized (glLock) {
+                    for (final GLPoolRunnable action : glActions) {
+                        if (action != null) {
+                            final Object result = action.run();
+                            render.glQueueEvent(new Runnable() {
+                                @Override
+                                public void run() {
+                                    //noinspection unchecked
+                                    action.glRun(result);
+                                }
+                            });
+                        }
                     }
-                }
 
-                glActions.clear();
+                    glActions.clear();
+                }
             }
 
             TrainedMonkey.wait(this);
         }
-    }
-
-    @Override
-    public void onPause() {
-
-        if(instance != null){
-            running = false;
-            TrainedMonkey.notify(instance);
-            instance.interrupt();
-            instance = null;
-        }
-    }
-
-    @Override
-    public void onResume() {
-
-        running = false;
-        instance = null;
-    }
-
-    //just overriding ASL and not using deprecated super of Thread class
-    @Override
-    public void destroy() {
-
-        onPause();
     }
 }

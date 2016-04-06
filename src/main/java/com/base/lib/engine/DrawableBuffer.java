@@ -35,16 +35,15 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
 
     protected List<DrawableModel> models;
 
-    public DrawableBuffer(){
+    public DrawableBuffer() {
+            }
 
-    }
-
-    public DrawableBuffer(BaseDrawableData data){
+    public DrawableBuffer(BaseDrawableData data) {
 
         init(data);
     }
 
-    public void init(BaseDrawableData data){
+    public void init(BaseDrawableData data) {
 
         init(data.vertices, data.textures, data.faceOrder);
         sizeX = data.sizeX;
@@ -53,25 +52,25 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         cpv = data.cpv;
     }
 
-    private void init(float[] vertices, float[] textures, short[] faces){
+    private void init(float[] vertices, float[] textures, short[] faces) {
 
         verticeBuffer = Buffers.floatBuffer(vertices);
-        if(textures != null) textureBuffer = Buffers.floatBuffer(textures);
+        if (textures != null) textureBuffer = Buffers.floatBuffer(textures);
         faceBuffer = Buffers.shortBuffer(faces);
         faceCount = faces.length;
     }
 
-    public void setFaceCount(int count){
+    public void setFaceCount(int count) {
 
         faceCount = count;
     }
 
-    public void setCoordsPerVertice(int cpv){
+    public void setCoordsPerVertice(int cpv) {
 
         this.cpv = cpv;
     }
 
-    public void setCoordsPerColor(int cpt){
+    public void setCoordsPerColor(int cpt) {
 
         this.cpt = cpt;
     }
@@ -86,27 +85,27 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         return cpt;
     }
 
-    public void setVerticeBuffer(FloatBuffer buffer){
+    public void setVerticeBuffer(FloatBuffer buffer) {
 
         verticeBuffer = buffer;
     }
 
-    public void setTextureBuffer(FloatBuffer buffer){
+    public void setTextureBuffer(FloatBuffer buffer) {
 
         textureBuffer = buffer;
     }
 
-    public void setFaceBuffer(ShortBuffer buffer){
+    public void setFaceBuffer(ShortBuffer buffer) {
 
         faceBuffer = buffer;
     }
 
-    public void putVertices(float[] vertices){
+    public void putVertices(float[] vertices) {
 
         verticeBuffer.put(vertices).position(0);
     }
 
-    public void putTextureCoords(float[] coords){
+    public void putTextureCoords(float[] coords) {
 
         textureBuffer.put(coords).position(0);
     }
@@ -121,19 +120,19 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         this.glDrawMode = glDrawMode;
     }
 
-    public VBO asVBO(){
+    public VBO asVBO() {
 
         return asVBO(Type.VBO_STATIC);
     }
 
-    public VBO asVBO(final Type type){
+    public VBO asVBO(final Type type) {
 
         final VBO vbo = new VBO();
 
-        if(BaseGL.isOnGLThread()) {
+        if (base.gl.isOnGLThread()) {
             vbo.glGenBuffers(type);
         } else {
-            Base.render.glQueueEvent(new Runnable() {
+            base.render.glQueueEvent(new Runnable() {
                 @Override
                 public void run() {
                     vbo.glGenBuffers(type);
@@ -144,59 +143,59 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         return vbo;
     }
 
-    public void glUseProgram(){
-        BaseGL.useProgram(shader.glProgram);
+    public void glUseProgram() {
+        BaseGL.useProgram(shader.glid);
     }
 
-    public void glPutVerticeBuffer(){
+    public void glPutVerticeBuffer() {
         verticeBuffer.position(0);
         GLES20.glVertexAttribPointer(shader.handle[1], cpv, GLES20.GL_FLOAT, false, 0, verticeBuffer);
         GLES20.glEnableVertexAttribArray(shader.handle[1]);
     }
 
-    public void glPutVerticeBuffer(FloatBuffer verticeBuffer){
+    public void glPutVerticeBuffer(FloatBuffer verticeBuffer) {
         verticeBuffer.position(0);
         GLES20.glVertexAttribPointer(shader.handle[1], cpv, GLES20.GL_FLOAT, false, 0, verticeBuffer);
         GLES20.glEnableVertexAttribArray(shader.handle[1]);
     }
 
-    public void glPutTextureBuffer(){
+    public void glPutTextureBuffer() {
         textureBuffer.position(0);
         GLES20.glVertexAttribPointer(shader.handle[2], cpt, GLES20.GL_FLOAT, false, 0, textureBuffer);
         GLES20.glEnableVertexAttribArray(shader.handle[2]);
     }
 
-    public void glPutTextureBuffer(FloatBuffer textureBuffer){
+    public void glPutTextureBuffer(FloatBuffer textureBuffer) {
         textureBuffer.position(0);
         GLES20.glVertexAttribPointer(shader.handle[2], cpt, GLES20.GL_FLOAT, false, 0, textureBuffer);
         GLES20.glEnableVertexAttribArray(shader.handle[2]);
     }
 
-    public void glPutDraw(){
+    public void glPutDraw() {
         faceBuffer.position(0);
         GLES20.glDrawElements(glDrawMode, faceCount, GLES20.GL_UNSIGNED_SHORT, faceBuffer);
     }
 
-    public void glPutMVPMatrix(float[] MVPMatrix){
+    public void glPutMVPMatrix(float[] MVPMatrix) {
         GLES20.glUniformMatrix4fv(shader.handle[0], 1, false, MVPMatrix, 0);
     }
 
-    public void glBindTexture(int textureID){
+    public void glBindTexture(int textureID) {
         BaseGL.bindTexture(textureID);
     }
 
-    public void glDisableAttribArray(){
+    public void glDisableAttribArray() {
         GLES20.glDisableVertexAttribArray(shader.handle[1]);
         GLES20.glDisableVertexAttribArray(shader.handle[2]);
     }
 
-    public Collection<DrawableModel> getModels(){
+    public Collection<DrawableModel> getModels() {
         return Collections.unmodifiableCollection(models);
     }
 
-    public void add(DrawableModel model){
+    public void add(DrawableModel model) {
 
-        if(models == null){
+        if (models == null) {
             models = Collections.synchronizedList(new ArrayList<DrawableModel>());
         }
 
@@ -205,32 +204,32 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         model.sizeZ = sizeZ;
         model.camera = camera;
 
-        synchronized (this){
+        synchronized (this) {
             models.add(model);
         }
     }
 
-    public void add(DrawableModel[] models){
+    public void add(DrawableModel[] models) {
 
-        for(DrawableModel model : models){
+        for (DrawableModel model : models) {
             add(model);
         }
     }
 
-    public void remove(DrawableModel model){
+    public void remove(DrawableModel model) {
 
-        synchronized (this){
+        synchronized (this) {
             models.remove(model);
         }
     }
 
-    public synchronized void clear(boolean destroy){
+    public synchronized void clear(boolean destroy) {
 
         Iterator<DrawableModel> iterator = models.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             DrawableModel model = iterator.next();
             iterator.remove();
-            if(destroy){
+            if (destroy) {
                 model.unUse();
                 model.destroy();
                 model = null;
@@ -273,13 +272,13 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         glDisableAttribArray();
     }
 
-    public void drawPutModel(DrawableModel model){
+    public void drawPutModel(DrawableModel model) {
 
         bindTexturePutMVPMatrix(model);
         glPutDraw();
     }
 
-    protected void bindTexturePutMVPMatrix(DrawableModel model){
+    public void bindTexturePutMVPMatrix(DrawableModel model) {
         glBindTexture(model.texture.glid);
         glPutMVPMatrix(model.MVPMatrix);
     }
@@ -311,7 +310,7 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
     @Override
     public void destroy() {
 
-        for(DrawableModel model : models){
+        for (DrawableModel model : models) {
             model.destroy();
         }
     }
@@ -332,12 +331,16 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         private int glTextureBufferID;
         private int glFaceBufferID;
 
-        protected void glGenBuffers(Type type){
+        public VBO() {
+
+        }
+
+        protected void glGenBuffers(Type type) {
 
             int vBuf = 0;
             int tBuf = 0;
 
-            switch (type){
+            switch (type) {
                 case VBO_STATIC:
                     vBuf = GLES20.GL_STATIC_DRAW;
                     tBuf = GLES20.GL_STATIC_DRAW;
@@ -356,7 +359,7 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
                     break;
             }
 
-            BaseGL.addGLEndListener(this);
+            base.gl.addGLEndListener(this);
 
             glVerticeBufferID = BaseGL.genArrayFloatBuffer(verticeBuffer, vBuf);
             glTextureBufferID = BaseGL.genArrayFloatBuffer(textureBuffer, tBuf);
@@ -367,37 +370,37 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
             faceBuffer = null;
         }
 
-        public void glBindVerticeBuffer(){
+        public void glBindVerticeBuffer() {
 
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, glVerticeBufferID);
             GLES20.glVertexAttribPointer(shader.handle[1], cpv, GLES20.GL_FLOAT, false, 0, 0);
             GLES20.glEnableVertexAttribArray(shader.handle[1]);
         }
 
-        public void glBindTextureBuffer(){
+        public void glBindTextureBuffer() {
 
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, glTextureBufferID);
             GLES20.glVertexAttribPointer(shader.handle[2], cpt, GLES20.GL_FLOAT, false, 0, 0);
             GLES20.glEnableVertexAttribArray(shader.handle[2]);
         }
 
-        public void glBindDraw(){ //glBindFaceBuffer and glDrawBindedElements
+        public void glBindDraw() { //glBindFaceBuffer and glDrawBindedElements
 
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, glFaceBufferID);
             GLES20.glDrawElements(glDrawMode, faceCount, GLES20.GL_UNSIGNED_SHORT, 0);
         }
 
-        void glBindFaceBuffer(){
+        void glBindFaceBuffer() {
 
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, glFaceBufferID);
         }
 
-        void glDrawBindedElements(){
+        void glDrawBindedElements() {
 
             GLES20.glDrawElements(glDrawMode, faceCount, GLES20.GL_UNSIGNED_SHORT, 0);
         }
 
-        public void glUnbindBuffer(){
+        public void glUnbindBuffer() {
 
             GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
             GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -409,7 +412,7 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
             glBindTextureBuffer();
             glBindVerticeBuffer();
             glBindFaceBuffer();
-            for(DrawableModel model : models){
+            for (DrawableModel model : models) {
                 bindTexturePutMVPMatrix(model);
                 glDrawBindedElements();
             }
@@ -444,7 +447,7 @@ public class DrawableBuffer extends BaseRenderable implements GLStateListener { 
         public void destroy() {
 
             BaseGL.destroyBuffers(glVerticeBufferID, glTextureBufferID, glFaceBufferID);
-            BaseGL.removeGLEndListener(this);
+            base.gl.removeGLEndListener(this);
 
             super.destroy();
         }
